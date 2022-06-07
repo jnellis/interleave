@@ -1,21 +1,12 @@
+import java.text.SimpleDateFormat
+
 plugins {
   id 'groovy'
   id 'java-library'
-  id "io.morethan.jmhreport" version "0.9.0"  
+  id "io.morethan.jmhreport" version "0.9.0"
+  id "idea"
 }
 
-sourceSets {
-  java17 {
-    java {
-      srcDirs = ['src/main/java17/']
-    }
-  }
-  java17Test {
-    java {
-      srcDirs = ['src/test/java17/']
-    }
-  }
-}
 
 apply from: 'jmh.gradle'
 
@@ -35,13 +26,15 @@ compileJava {
   options.release = 8
 }
 
-compileJava17Java {
-  options.release = 17
-}
-compileJava17TestJava {
-  options.release = 17
+idea {
+  module {
+    downloadJavadoc = true     
+  }
 }
 
+test{
+  useJUnitPlatform()
+}
 
 dependencies {
   implementation 'org.apache.commons:commons-collections4:4.4'
@@ -50,77 +43,24 @@ dependencies {
   testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 
-  java17Implementation files(sourceSets.main.output.classesDirs) {
-    builtBy compileJava
-  }
-
-  java17TestImplementation files(sourceSets.java17.output.classesDirs,
-      sourceSets.main.output.classesDirs,
-      sourceSets.test.output.classesDirs)
-
-  java17TestImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-  java17TestImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
-  java17TestRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-
-
+  testImplementation platform("org.spockframework:spock-bom:2.1-groovy-3.0")
+  testImplementation "org.spockframework:spock-core"
+ 
 }
-
-jar {
-  into('META-INF/versions/17') {
-    from sourceSets.java17.output
-  }
-  manifest {
-    attributes("Manifest-Version": "1.0",
-        "Multi-Release": true)
-  }
-}
-
-
-tasks.register('testJava17', Test) {
-  description = 'Tests java17 specific code'
-  group = 'verification'
-  testClassesDirs = sourceSets.java17Test.output.classesDirs  
-  classpath = sourceSets.java17Test.runtimeClasspath
-  it.shouldRunAfter test
-  useJUnitPlatform()
-}
-
-tasks.withType(Test).configureEach{
-  useJUnitPlatform()
-  reports.html.required = true
-}
-
-task testReport(type:TestReport){
-  destinationDir = file("$buildDir/reports/tests/ztest")
-  def tests = tasks.withType(Test)
-  println tests
-  reportOn tests
-}
-
-tasks.test.finalizedBy testJava17
-tasks.testJava17.finalizedBy testReport
-
-java {
-  toolchain{
-    languageVersion = JavaLanguageVersion.of(17)
-    vendor = JvmVendorSpec.ORACLE
-  }
-}
-
 
 // jmhReport setting
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = [".*Bench"]
-  iterations = 15
+  include = ["InPlace.*InterleaveBench" ]
+  iterations = 10
   warmupIterations = 5
   jmhVersion = '1.35'
   benchmarkMode = ['avgt']
   resultFormat = 'JSON'
   resultsFile = reportFile
-//  profilers=['hs_rt']
-  fork = 3
+//  profilers=['stack']
+  fork = 2
   timeUnit = 'ns'
   timeOnIteration = '1s'
   warmup = '1s'
@@ -138,8 +78,10 @@ jmh {
 }
 
 jmhReport {
+  def dateStr = new SimpleDateFormat("yy_MM_dd/HH_mm").format(new Date())
   jmhResultPath = reportFile
-  jmhReportOutput = file("$projectDir/docs/jmh/1")
+  jmhReportOutput =   file("$projectDir/docs/jmh/$dateStr")
+  mkdir(jmhReportOutput)
 }
 
 tasks.jmh.finalizedBy tasks.jmhReport

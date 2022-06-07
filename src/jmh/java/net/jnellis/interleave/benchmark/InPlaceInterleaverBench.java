@@ -1,6 +1,8 @@
 package net.jnellis.interleave.benchmark;
 
 import net.jnellis.interleave.InPlaceInterleaver;
+import net.jnellis.interleave.PermutationInterleaver;
+import net.jnellis.interleave.RecursiveInterleaver;
 import net.jnellis.interleave.RotatingQueueInterleaver;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
@@ -19,7 +21,7 @@ import java.util.stream.IntStream;
 @State(Scope.Benchmark)
 public class InPlaceInterleaverBench {
 
-  @Param({"10", "1000", "100000"})
+  @Param({"10", "100", "1000", "10000", "100000", "1000000", "10000000"})
   public int max;
 
   List<Object> list;
@@ -29,10 +31,6 @@ public class InPlaceInterleaverBench {
     list = IntStream.range(0, max)
                     .boxed()
                     .collect(Collectors.toCollection(ArrayList::new));
-
-//    list = Stream.generate(Object::new)
-//                 .limit(max)
-//                 .collect(Collectors.toCollection(ArrayList::new));
   }
 
   @Benchmark
@@ -44,26 +42,58 @@ public class InPlaceInterleaverBench {
   }
 
   @Benchmark
-  public List<Object> interleaveBench() {
+  public List<Object> a025480InterleaveBench() {
     InPlaceInterleaver.interleave(list, false, false);
     return list;
   }
 
   @Benchmark
-  public List<Object> shuffleBench() {
+  public List<Object> a025480ShuffleBench() {
     InPlaceInterleaver.interleave(list, true, false);
     return list;
   }
 
   @Benchmark
-  public List<Object> foldingBench() {
+  public List<Object> a025480FoldingBench() {
     InPlaceInterleaver.interleave(list, false, true);
     return list;
   }
 
   @Benchmark
-  public List<Object> foldingShuffleBench() {
+  public List<Object> a025480FoldingShuffleBench() {
     InPlaceInterleaver.interleave(list, true, true);
+    return list;
+  }
+
+  //// PermutationInterleaver benchmarks
+  @Benchmark
+  public List<Object> permutationInterleaveBench() {
+    PermutationInterleaver.interleave(list, false, false);
+    return list;
+  }
+
+  @Benchmark
+  public List<Object> permutationShuffleBench() {
+    PermutationInterleaver.interleave(list, true, false);
+    return list;
+  }
+
+  @Benchmark
+  public List<Object> permutationFoldingBench() {
+    PermutationInterleaver.interleave(list, false, true);
+    return list;
+  }
+
+  @Benchmark
+  public List<Object> permutationFoldingShuffleBench() {
+    PermutationInterleaver.interleave(list, true, true);
+    return list;
+  }
+
+  //// RecursiveInterleaver benchmarks
+  @Benchmark
+  public List<Object> recursiveInterleaveBench() {
+    RecursiveInterleaver.interleave(list, false, false);
     return list;
   }
 

@@ -51,8 +51,7 @@ afterEvaluate { // required to allow build.gradle to see jmh block first
     manifest{
       attributes 'ImplemenationTitle': 'JMH Benchmarks',
           'Implementation-Version': archiveVersion,
-          'Main-Class': 'org.openjdk.jmh.Main',
-          'Multi-Release': true
+          'Main-Class': 'org.openjdk.jmh.Main'  
     }
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     archiveAppendix = 'benchmarks'
