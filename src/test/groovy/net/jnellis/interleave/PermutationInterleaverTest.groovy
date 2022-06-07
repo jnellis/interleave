@@ -30,7 +30,7 @@ class PermutationInterleaverTest extends Specification {
     expect:
     PermutationInterleaver.find2m(twoN as int) == twoM
     where:
-    twoN << ([3, 4, 9, 15, 26, 27, 28, 81, 82, 83] as Number)
+    twoN << [3, 4, 9, 15, 26, 27, 28, 81, 82, 83]
     twoM << [2, 2, 8, 8, 8, 26, 26, 80, 80, 80]
 
   }

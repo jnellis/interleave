@@ -1,5 +1,6 @@
 package net.jnellis.interleave;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -9,8 +10,19 @@ public class RecursiveInterleaver {
   public static <T> void interleave(List<T> list,
                                     boolean inShuffle,
                                     boolean folding) {
+    if(!inShuffle) { // out-shuffle
+      list = list.subList(1,list.size());
+    }
+    if(folding){
+      Collections.reverse(list.subList(list.size()/2, list.size()));
+    }
+
+
     int n = list.size() >> 1;
-    if (n == 1) {
+    if (n < 2) {
+      if (n == 0){ // list was empty or had one element
+        return;
+      }
       // just swap these two
       list.set(0, list.set(1, list.get(0)));
     } else {
@@ -26,7 +38,7 @@ public class RecursiveInterleaver {
       interleave(a, b, k);
       // process the remaining part of the list
       if (n > k) { // if n was a power of two already, then stop
-        interleave(list.subList(2 * k, list.size()), inShuffle, folding);
+        interleave(list.subList(2 * k, list.size()), true, false);
       }
     }
   }
