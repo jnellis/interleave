@@ -52,7 +52,7 @@ dependencies {
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["InPlace.*InterleaveBench" ]
+  include = ["InPlace.*ArrayInterleaveBench" ]
   iterations = 10
   warmupIterations = 5
   jmhVersion = '1.35'
@@ -81,7 +81,7 @@ jmhReport {
   def dateStr = new SimpleDateFormat("yy_MM_dd/HH_mm").format(new Date())
   jmhResultPath = reportFile
   jmhReportOutput =   file("$projectDir/docs/jmh/$dateStr")
-  mkdir(jmhReportOutput)
 }
+tasks.jmhReport.doFirst{ mkdir(jmhReport.jmhReportOutput) }
 
 tasks.jmh.finalizedBy tasks.jmhReport

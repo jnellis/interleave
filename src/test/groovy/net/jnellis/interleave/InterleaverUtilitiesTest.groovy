@@ -3,13 +3,7 @@ package net.jnellis.interleave
 import spock.lang.Specification
 import spock.lang.Unroll
 
-/**
- * User: Joe Nellis
- * Date: 5/22/2022 
- * Time: 12:49 PM
- *
- */
-class PermutationInterleaverTest extends Specification {
+class InterleaverUtilitiesTest extends Specification {
 
   def "test interleave"() {
     expect:

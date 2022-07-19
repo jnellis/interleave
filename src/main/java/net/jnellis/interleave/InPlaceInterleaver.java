@@ -150,11 +150,109 @@ public class InPlaceInterleaver{
 
   }
 
+  public static <T> void interleave(T[] arr, boolean shuffle, boolean folding){
+    interleave(arr,0,arr.length,shuffle,folding);
+  }
+
+  public static <T> void interleave(T[] arr, int from, int to, boolean shuffle, boolean folding){
+    // some bounds checks
+    if(from < 0 || from > to || to > arr.length){
+      throw new IllegalArgumentException("Bounds check on from and to parameters failed.");
+    }
+
+    int numItems = to - from;
+    int i = from;
+    int midpt = from + Util.mid(numItems);
+    // if the list is of odd length and doing in-shuffle, pretend its even length
+    if (!Util.isEven(numItems) && shuffle) {
+      midpt--;
+      // ignore last element unless we are folding because it would be
+      // untouched in in-shuffle of odd length anyway
+      if(!folding){
+        numItems--;
+      }
+    }
+    // reverse lower half of list
+    if (folding) {
+      Util.reverse(arr, midpt, numItems);
+    }
+
+    while (i < numItems - 1) {
+      //for an out-shuffle, the left item is at an even index
+      if (Util.isEven(i) ^ shuffle) {
+        i++;
+      }
+      int base = i;
+
+      // emplace left half
+      for (; i < midpt; i++) {
+        int j = Util.a025480(i - base);
+        Util.swap(arr, i, midpt + j);
+      }
+
+      //unscramble swapped items in right half
+      int swap_cnt = Util.mid(i - base);
+      for (int j = 0; j < swap_cnt - 1; j++) {
+        int k = unshuffle(j, i - base);
+        if (j != k) {
+          Util.swap(arr, midpt + j, midpt + k);
+        }
+      }
+      // reset the midpoint to work on the remaining half of the list
+      midpt += swap_cnt;
+    }
+  }
+
+  public static <T> void interleave(T[] a, T[] b, boolean shuffle, boolean folding){
+
+    int minSize = Math.min(a.length, b.length);
+    int i = 0;
+    if (folding) {
+      // Reverse array B, but only as much as the smallest of array A or B.
+      // Special case for in-shuffle, reverse the whole list regardless of size
+      // as we lead with this element and the leftover, if odd sized, is ignored.
+      Util.reverse(b ,0 , shuffle ? b.length : minSize);
+    }
+
+    if (!shuffle) { // if true then don't skip the first element in array A
+      i++;
+    }
+    int base = i;
+
+    // swap all of List A
+    for (; i < minSize; i++) {
+      int j = Util.a025480(i - base);
+      Util.swap(a,i,b,j);
+    }
+
+    // unscramble the first half of List B
+    int swap_cnt = Util.mid(i - base);
+    for (int j = 0; j + 1 < swap_cnt; j++) {
+      int k = unshuffle(j, i - base);
+      if (j != k) {
+        Util.swap(b, j, k);
+      }
+    }
+
+    // finish interleaving List B on its own
+    interleave(
+        b, //.subList(0, minSize),
+        0,
+        minSize,
+        // for odd sized lists, reverse the shuffle otherwise the midpoint
+        // picked by the one-list algorithm will be off by one.
+        Util.isEven(minSize) == shuffle,
+        false); // we already pre-folded
+  }
+
   /*
    * When the first pass of interleaving is done up to the midpoint of the list,
    * the beginning of the list is correctly interleaved but from the midpoint to
    * the end is methodically scrambled. This provides the unscrambling order to
-   * get the end half of the list ready to interleave the end half.
+   * get the front half of the list ready to interleave the end half.
+   *
+   * @todo: explore the unscrambling technique in RecursiveInterleaver to
+   *   more accurately find swap positions.
    */
   private static int unshuffle(int j, int size) {
     int i = j;
@@ -164,5 +262,4 @@ public class InPlaceInterleaver{
     while (i < j);
     return i;
   }
-
 }

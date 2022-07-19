@@ -10,12 +10,70 @@ import java.util.List;
 public class Util {
   private Util() {}
 
+  /**
+   * Reverses elements in a section of an array.
+   *
+   * @param arr  The array
+   * @param from The starting point
+   * @param to   Exclusive end point
+   */
+  public static void reverse(Object[] arr, int from, int to) {
+    int size = to - from;
+    for (int i = from, mid = from + (size >> 1), j = to - 1; i < mid; i++, j--) {
+      swap(arr, i, j);
+    }
+  }
+
+  /**
+   * Swap two elements in an array.
+   *
+   * @param arr The array
+   * @param i   first location
+   * @param j   other location
+   */
+  public static void swap(Object[] arr, int i, int j) {
+    Object temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+
+  /**
+   * Swap two elements in two different arrays.
+   *
+   * @param arrA The first array
+   * @param i    location in first array
+   * @param arrB The second array
+   * @param j    location in second array
+   */
+  public static void swap(Object[] arrA, int i, Object[] arrB, int j) {
+    Object temp = arrA[i];
+    arrA[i] = arrB[j];
+    arrB[j] = temp;
+  }
+
+  /**
+   * Modular Exponentiation: wrapper to using BigInteger's modPow method.
+   *
+   * @param a base
+   * @param b exponent
+   * @param c modulo
+   * @return remainder of (a^b) % c
+   */
   public static long bigIntModPow(int a, int b, int c) {
     return BigInteger.valueOf(a)
                      .modPow(BigInteger.valueOf(b), BigInteger.valueOf(c))
                      .longValueExact();
   }
 
+  /**
+   * Fast Modular Exponentiation: performs (a^b) % c Note: (a^b) is an
+   * exponentiation function, not exclusive-or
+   *
+   * @param a base
+   * @param b exponent
+   * @param c modulo
+   * @return remainder of (a^b) % c
+   */
   public static long fastmod(int a, int b, int c) {
     long x = 1, y = a;
     while (b > 0) {
@@ -44,7 +102,7 @@ public class Util {
     int n = list.size();
     m = m % n; // if m is bigger than the list size, reduce redundancy
     if (cycleLeft) {
-      m = n - m;  // uncomment to rotate left
+      m = n - m;
     }
     int sets = gcd(n, m);
     for (int i = 0; i < sets; i++) {
@@ -106,7 +164,7 @@ public class Util {
 
   static boolean isEven(int n) {return (n & 1) == 0;}
 
-  static int log2 ( int i){
+  static int log2(int i) {
     return i == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(i);
   }
 }
