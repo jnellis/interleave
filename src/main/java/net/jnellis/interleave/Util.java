@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * User: Joe Nellis Date: 6/5/2022 Time: 7:58 PM
+ * Some static utility functions used by interleaving algorithms.
  */
-public class Util {
+public final class Util {
   private Util() {}
 
   /**
@@ -98,6 +98,36 @@ public class Util {
     rotateViaCycleLeader(list, positions, true);
   }
 
+  public static <T> void rotateRight(T[] array, int positions) {
+    rotateViaTripleReverse(array, 0, array.length, positions, false);
+  }
+
+  public static <T> void rotateRight(T[] array,
+                                     int from,
+                                     int to,
+                                     int positions) {
+    rotateViaTripleReverse(array, from, to, positions, false);
+  }
+
+  public static <T> void rotateLeft(T[] array, int positions) {
+    rotateViaTripleReverse(array, 0, array.length, positions, true);
+  }
+
+  public static <T> void rotateLeft(T[] array,
+                                    int from,
+                                    int to,
+                                    int positions) {
+    rotateViaTripleReverse(array, from, to, positions, true);
+  }
+
+  /**
+   * Rotates the list by m positions via a cycle leader algorithm.
+   *
+   * @param list      the list to rotate
+   * @param m         number of positions to rotate right
+   * @param cycleLeft if true, rotates left instead of right
+   * @param <T>       type of list item
+   */
   static <T> void rotateViaCycleLeader(List<T> list, int m, boolean cycleLeft) {
     int n = list.size();
     m = m % n; // if m is bigger than the list size, reduce redundancy
@@ -123,15 +153,46 @@ public class Util {
   /**
    * Rotates right the list m positions via the triple reverse algorithm.
    *
-   * @param list list to rotate
-   * @param m    number of positions to rotate right
-   * @param <T>  type of list item
+   * @param list       list to rotate
+   * @param m          number of positions to rotate right
+   * @param rotateLeft rotates left if true
+   * @param <T>        type of list item
    */
-  public static <T> void rotateViaTripleReverse(List<T> list, int m) {
-    m = list.size() - m % list.size();
+  public static <T> void rotateViaTripleReverse(List<T> list,
+                                                int m,
+                                                boolean rotateLeft) {
+    m = m % list.size();
+    if (!rotateLeft) {
+      m = list.size() - m;
+    }
     Collections.reverse(list.subList(0, m));
     Collections.reverse(list.subList(m, list.size()));
     Collections.reverse(list);
+  }
+
+  /**
+   * Rotates right the array m positions via the triple reverse algorithm.
+   *
+   * @param arr        array to rotate
+   * @param from       starting from position
+   * @param to         ending to position (exclusive)
+   * @param m          number of positions to rotate right
+   * @param rotateLeft rotates left if true
+   * @param <T>        type of array item
+   */
+  public static <T> void rotateViaTripleReverse(T[] arr,
+                                                int from,
+                                                int to,
+                                                int m,
+                                                boolean rotateLeft) {
+    int size = to - from;
+    m = m % size;
+    if (!rotateLeft) {
+      m = size - m;
+    }
+    Util.reverse(arr, from, from + m);
+    Util.reverse(arr, from + m, to);
+    Util.reverse(arr, from, to);
   }
 
   public static int gcd(int a, int b) {
@@ -148,22 +209,33 @@ public class Util {
    * <a href="https://oeis.org/A025480">https://oeis.org/A025480</a>
    * which generates the index positions for the proper sequence of swaps (and
    * swap backs) for the interleave operation, given that series of swaps was
-   * done sequentially and in order.
-   *
-   * Implementation note:  The algorithm effectively right shifts the value of n
-   * just past the lowest clear bit.
+   * done sequentially and in order. Implementation note:  The algorithm
+   * effectively right shifts the value of n just past the lowest clear bit.
    *
    * @param n index on the left side to swap
-   * @return index on the right side to swap (plus a midpoint offset)
+   * @return index on the right side to swap (plus any midpoint offset)
    */
   static int a025480(int n) {
     return n >> (Integer.numberOfTrailingZeros(~n) + 1);
   }
 
+  /**
+   * The midpoint of a length, biased away from zero if the size is odd. ex.
+   * mid(5) = 3 mid(4) = 2 mid(3) = 2 mid(2) = 1 mid(1) = 1 mid(0) = 0
+   *
+   * @param size a positive value
+   * @return midpoint of a length.
+   */
   static int mid(int size) {return size - (size >> 1);}
 
   static boolean isEven(int n) {return (n & 1) == 0;}
 
+  /**
+   * Fast log base 2 for integers
+   *
+   * @param i value
+   * @return the base 2 logarithm of i
+   */
   static int log2(int i) {
     return i == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(i);
   }

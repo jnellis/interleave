@@ -9,7 +9,7 @@ class OneArrayInterleaverTest extends InterleaversBase {
   @Shared
   def interleavers = [
       "a025480"    : InPlaceInterleaver::interleave,
-//      "permutation": PermutationInterleaver::interleave,
+      "permutation": PermutationInterleaver::interleave,
 //      "recursive"  : RecursiveInterleaver::interleave
   ]
 

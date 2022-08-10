@@ -20,17 +20,8 @@ class InterleaverUtilitiesTest extends Specification {
            11, 'l', 12, 'm']]
   }
 
-  def "test find2m"() {
-    expect:
-    PermutationInterleaver.find2m(twoN as int) == twoM
-    where:
-    twoN << [3, 4, 9, 15, 26, 27, 28, 81, 82, 83]
-    twoM << [2, 2, 8, 8, 8, 26, 26, 80, 80, 80]
-
-  }
-
   @Unroll
-  def "test rotate #a right #m places"() {
+  def "test list rotate #a right #m places"() {
     given:
     def n = a.size()
     def expected = new ArrayList(a[(n - (m % n))..<n])
@@ -38,8 +29,8 @@ class InterleaverUtilitiesTest extends Specification {
     expected.addAll(List.copyOf(a[0..<(n - (m % n))]))
     println("expected is " + expected)
     expect:
-    Util.rotateRight(a,m)
-//    PermutationInterleaver.rotateViaTripleReverse(a, m)
+//    Util.rotateRight(a,m)
+    Util.rotateViaTripleReverse(a, m, false)
     a == expected
     println("a is " + a)
     println()
@@ -53,22 +44,43 @@ class InterleaverUtilitiesTest extends Specification {
     7  | [1, 2, 3, 4, 5, 6, 7]
     0  | [1, 2, 3, 4, 5, 6]
     58 | [1, 2, 3, 4, 5, 6, 7]
+  }
 
+  @Unroll
+  def "test array rotate #a right #m places"() {
+    given:
+    def from = 1
+    def to = a.length - 1 
+    expect:
+    Util.rotateViaTripleReverse(a, from, to, m, false)
+    a[from..<to].toArray() == expected.toArray()
+    println("a is " + a)
+    println()
+    where:
+    m  | a                                  || expected
+    3  | [1, 2, 3, 4, 5, 6, 7] as Integer[] || [4, 5, 6, 2, 3]
+    3  | [1, 2, 3, 4, 5, 6] as Integer[]    || [3, 4, 5, 2]
+    2  | [1, 2, 3, 4, 5, 6, 7] as Integer[] || [5, 6, 2, 3, 4]
+    1  | [1, 2, 3, 4, 5, 6, 7] as Integer[] || [6, 2, 3, 4, 5]
+    6  | [1, 2, 3, 4, 5, 6, 7] as Integer[] || [6, 2, 3, 4, 5]
+    7  | [1, 2, 3, 4, 5, 6, 7] as Integer[] || [5, 6, 2, 3, 4]
+    0  | [1, 2, 3, 4, 5, 6] as Integer[]    || [2, 3, 4, 5]
+    58 | [1, 2, 3, 4, 5, 6, 7] as Integer[] || [4, 5, 6, 2, 3]
   }
 
   @Unroll
   def "test fastmod with 2^#exp % #k"() {
     expect:
     BigInteger expected = BigInteger.TWO.modPow(BigInteger.valueOf(exp), BigInteger.valueOf(k))
-    int val = (int)Util.fastmod(2, exp, k)
+    int val = (int) Util.fastmod(2, exp, k)
     val == expected.intValue()
     where:
-    exp | k
-    55  | 3**6
-    434 | 3**9
-    600 | 3**19
-    900 | 3**19
-    1800| 3**19
+    exp  | k
+    55   | 3**6
+    434  | 3**9
+    600  | 3**19
+    900  | 3**19
+    1800 | 3**19
   }
 
 }
