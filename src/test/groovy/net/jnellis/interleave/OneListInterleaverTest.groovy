@@ -14,9 +14,65 @@ class OneListInterleaverTest extends InterleaversBase {
 
   @Shared
   int[] maxes = [2, 3, 4, 9, 10, 11, 31, 32, 33, 999, 1000, 1001, 999999, 1000000]
- 
+
   def paramCombinations() {
     [maxes, interleavers.keySet()].combinations()*.flatten()
+  }
+
+  @Unroll('#featureName[#iterationIndex] #algo #variant')
+  def "one list out-shuffle, unexpected behavior example"() {
+    println data
+    interleavers[algo](collection, false, false)
+    expect:
+    collection == expected
+    println data
+    where:
+    [data, algo] << [getTypes()["outShuffle"], interleavers.keySet()].combinations()
+    collection = new ArrayList(data[1])
+    expected = data[2]
+    variant = data[0]
+  }
+
+  @Unroll('#featureName[#iterationIndex] #algo #variant')
+  def "one list in-shuffle, unexpected behavior example"() {
+    println data
+    interleavers[algo](collection, true, false)
+    expect:
+    collection == expected
+    println data
+    where:
+    [data, algo] << [getTypes()["inShuffle"], interleavers.keySet()].combinations()
+    collection = new ArrayList(data[1])
+    expected = data[2]
+    variant = data[0]
+  }
+
+  @Unroll('#featureName[#iterationIndex] #algo #variant')
+  def "one list folding out-shuffle, unexpected behavior example"() {
+    println data
+    interleavers[algo](collection, false, true)
+    expect:
+    collection == expected
+    println data
+    where:
+    [data, algo] << [getTypes()["foldingOutShuffle"], interleavers.keySet()].combinations()
+    collection = new ArrayList(data[1])
+    expected = data[2]
+    variant = data[0]
+  }
+
+  @Unroll('#featureName[#iterationIndex] #algo #variant')
+  def "one list folding in-shuffle, unexpected behavior example"() {
+    println data
+    interleavers[algo](collection, true, true)
+    expect:
+    collection == expected
+    println data
+    where:
+    [data, algo] << [getTypes()["foldingInShuffle"], interleavers.keySet()].combinations()
+    collection = new ArrayList(data[1])
+    expected = data[2]
+    variant = data[0]
   }
 
   @Unroll("#featureName[#iterationIndex] (#parity, length of #max) #algo method")

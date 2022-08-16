@@ -10,7 +10,7 @@ class OneArrayInterleaverTest extends InterleaversBase {
   def interleavers = [
       "a025480"    : InPlaceInterleaver::interleave,
       "permutation": PermutationInterleaver::interleave,
-//      "recursive"  : RecursiveInterleaver::interleave
+      "recursive"  : RecursiveInterleaver::interleave
   ]
 
   @Shared
@@ -20,6 +20,61 @@ class OneArrayInterleaverTest extends InterleaversBase {
     [maxes, interleavers.keySet()].combinations()*.flatten()
   }
 
+  @Unroll('#featureName[#iterationIndex] #algo #variant')
+  def "one list out-shuffle, unexpected behavior example"() {
+    println data
+    interleavers[algo](collection, false, false)
+    expect:
+    collection == expected
+    println data
+    where:
+    [data, algo] << [getTypes()["outShuffle"], interleavers.keySet()].combinations()
+    collection = new ArrayList(data[1]).toArray()
+    expected = data[2]
+    variant = data[0]
+  }
+
+  @Unroll('#featureName[#iterationIndex] #algo #variant')
+  def "one list in-shuffle, unexpected behavior example"() {
+    println data
+    interleavers[algo](collection, true, false)
+    expect:
+    collection == expected
+    println data
+    where:
+    [data, algo] << [getTypes()["inShuffle"], interleavers.keySet()].combinations()
+    collection = new ArrayList(data[1]).toArray()
+    expected = data[2]
+    variant = data[0]
+  }
+
+  @Unroll('#featureName[#iterationIndex] #algo #variant')
+  def "one list folding out-shuffle, unexpected behavior example"() {
+    println data
+    interleavers[algo](collection, false, true)
+    expect:
+    collection == expected
+    println data
+    where:
+    [data, algo] << [getTypes()["foldingOutShuffle"], interleavers.keySet()].combinations()
+    collection = new ArrayList(data[1]).toArray()
+    expected = data[2]
+    variant = data[0]
+  }
+
+  @Unroll('#featureName[#iterationIndex] #algo #variant')
+  def "one list folding in-shuffle, unexpected behavior example"() {
+    println data
+    interleavers[algo](collection, true, true)
+    expect:
+    collection == expected
+    println data
+    where:
+    [data, algo] << [getTypes()["foldingInShuffle"], interleavers.keySet()].combinations()
+    collection = new ArrayList(data[1]).toArray()
+    expected = data[2]
+    variant = data[0]
+  }
 
   @Unroll("#featureName[#iterationIndex] (#parity, length of #max) #algo method")
   def "One array out-shuffle"() {

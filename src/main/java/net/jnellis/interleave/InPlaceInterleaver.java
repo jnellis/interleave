@@ -48,7 +48,7 @@ public class InPlaceInterleaver{
    * @param <T>     Type of object being ordered.
    * @return the same list of pieces, interleaved
    */
-  public static <T> List<T> interleave(final List<T> pieces,
+  public static <T> void interleave(final List<T> pieces,
                                        final boolean shuffle,
                                        final boolean folding) {
 
@@ -95,7 +95,7 @@ public class InPlaceInterleaver{
       // reset the midpoint to work on the remaining half of the list
       midpt += swap_cnt;
     }
-    return pieces;
+//    return pieces;
   }
 
   /**
@@ -114,10 +114,10 @@ public class InPlaceInterleaver{
     int minSize = Math.min(a.size(), b.size());
     int i = 0;
     if (folding) {
-      // Reverse list B, but only as much as the smallest of List A or B.
-      // Special case for in-shuffle, reverse the whole list regardless of size
-      // as we lead with this element and the leftover, if odd sized, is ignored.
-      Collections.reverse(inShuffle? b : b.subList(0,minSize));
+      // Rotate extra items to the back
+      Util.rotateLeft(b, b.size() - minSize);
+      // then reverse the part we intend to interleave.
+      Collections.reverse(b.subList(0, minSize));
     }
 
     if (!inShuffle) { // if true then don't skip the first element in List A

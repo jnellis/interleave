@@ -1,6 +1,6 @@
 package net.jnellis.interleave
 
-
+import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.junit.jupiter.api.Assertions.assertEquals
@@ -96,4 +96,50 @@ class InterleaversBase extends Specification {
     verifySequential(array2, 0, min)
   }
 
+  @Shared
+  def getTypes = {
+    ["outShuffle": [
+         ["even",     [1, 2, 3, 4, "a", "b", "c", "d"],      [1, "a", 2, "b", 3, "c", 4, "d"]],
+         ["oddFront", [1, 2, 3, 4, 5, "a", "b", "c", "d"],   [1, "a", 2, "b", 3, "c", 4, "d", 5]],
+         ["oddBack",  [1, 2, 3, 4, "a", "b", "c", "d", "e"], [1, "b", 2, "c", 3, "d", 4, "e", "a"]]
+     ],
+     "inShuffle" : [
+         ["even",     [1, 2, 3, 4, "a", "b", "c", "d"],      ["a", 1, "b", 2, "c", 3, "d", 4]],
+         ["oddFront", [1, 2, 3, 4, 5, "a", "b", "c", "d"],   [5, 1, "a", 2, "b", 3, "c", 4, "d"]],
+         ["oddBack",  [1, 2, 3, 4, "a", "b", "c", "d", "e"], ["a", 1, "b", 2, "c", 3, "d", 4, "e"]]
+     ],
+     "foldingOutShuffle": [
+         ["even",     [1, 2, 3, 4, "d", "c", "b", "a"],      [1, "a", 2, "b", 3, "c", 4, "d"]],
+         ["oddFront", [1, 2, 3, 4, 5, "d", "c", "b", "a"],   [1, "a", 2, "b", 3, "c", 4, "d", 5]],
+         ["oddBack",  [1, 2, 3, 4, "e", "d", "c", "b", "a"], [1, "a", 2, "b", 3, "c", 4, "d", "e"]]
+     ],
+     "foldingInShuffle" : [
+         ["even",     [1, 2, 3, 4, "d", "c", "b", "a"],      ["a", 1, "b", 2, "c", 3, "d", 4]],
+         ["oddFront", [1, 2, 3, 4, 5, "d", "c", "b", "a"],   ["a", 1, "b", 2, "c", 3, "d", 4, 5]],
+         ["oddBack",  [1, 2, 3, 4, "e", "d", "c", "b", "a"], ["a", 1, "b", 2, "c", 3, "d", 4, "e"]]
+     ],
+
+
+     "outShuffle2": [
+         ["even",     [1, 2, 3, 4],    ["a", "b", "c", "d"],      [1, "a", 2, "b"],    [3, "c", 4, "d"]],
+         ["oddFront", [1, 2, 3, 4, 5], ["a", "b", "c", "d"],      [1, "a", 2, "b", 5], [3, "c", 4, "d"]],
+         ["oddBack",  [1, 2, 3, 4],    ["a", "b", "c", "d", "e"], [1, "a", 2, "b"],    [3, "c", 4, "d", "e"]]
+     ],
+     "inShuffle2" : [
+         ["even",     [1, 2, 3, 4],    [ "a", "b", "c", "d"],     ["a", 1, "b", 2],    ["c", 3, "d", 4]],
+         ["oddFront", [1, 2, 3, 4, 5], ["a", "b", "c", "d"],      ["a", 1, "b", 2, 5], ["c", 3, "d", 4]],
+         ["oddBack",  [1, 2, 3, 4],    ["a", "b", "c", "d", "e"], ["a", 1, "b", 2],    ["c", 3, "d", 4, "e"]]
+     ],
+     "foldingOutShuffle2": [
+         ["even",     [1, 2, 3, 4],    ["d", "c", "b", "a"],      [1, "a", 2, "b"],    [3, "c", 4, "d"]],
+         ["oddFront", [1, 2, 3, 4, 5], ["d", "c", "b", "a"],      [1, "a", 2, "b", 5], [3, "c", 4, "d"]],
+         ["oddBack",  [1, 2, 3, 4],    ["e", "d", "c", "b", "a"], [1, "a", 2, "b"],    [3, "c", 4, "d", "e"]]
+     ],
+     "foldingInShuffle2" : [
+         ["even",     [1, 2, 3, 4],    ["d", "c", "b", "a"],      ["a", 1, "b", 2],    ["c", 3, "d", 4]],
+         ["oddFront", [1, 2, 3, 4, 5], ["d", "c", "b", "a"],      ["a", 1, "b", 2, 5], ["c", 3, "d", 4]],
+         ["oddBack",  [1, 2, 3, 4],    ["e", "d", "c", "b", "a"], ["a", 1, "b", 2],    ["c", 3, "d", 4, "e"]]
+     ]
+    ]
+  }
 }
