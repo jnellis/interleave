@@ -121,6 +121,33 @@ public final class Util {
   }
 
   /**
+   * Rotate, in-place, across two lists. Elements at the end of the first list
+   * get moved to the beginning of the second list. Elements at the end of the
+   * second list get pushed to the first list.
+   *
+   * @param a         first list
+   * @param b         second list
+   * @param positions number of positions to rotate
+   * @param <T>       type of element in lists
+   */
+  static public <T> void rotateRight(List<T> a, List<T> b, int positions) {
+    int n = a.size() + b.size();
+    int m = positions % n;
+    int sets = gcd(n,m);
+    for (int i = 0; i < sets; i++) {
+      T temp = i >= a.size() ? b.get(i-a.size()) : a.get(i);
+      int j = i;
+      do{
+        j += m;
+        if (j >= n){
+          j %= n;
+        }
+        temp = j >= a.size() ? b.set(j-a.size(),temp) : a.set(j, temp);
+      } while( j != i);
+    }
+  }
+
+  /**
    * Rotates the list by m positions via a cycle leader algorithm.
    *
    * @param list      the list to rotate

@@ -20,6 +20,19 @@ class InterleaverUtilitiesTest extends Specification {
            11, 'l', 12, 'm']]
   }
 
+  def "test two list rotate"() {
+    expect:
+    Util.rotateRight(a, b, m)
+    a + b == expected 
+    where:
+    m | a      | b               | expected
+    3 | [3, 4] | [5, 6, 7, 1, 2] | [7, 1, 2, 3, 4, 5, 6]
+    0 | [3, 4] | [5, 6, 7, 1, 2] | [3, 4, 5, 6, 7, 1, 2]
+    1 | [3, 4] | [5, 6, 7, 1, 2] | [2, 3, 4, 5, 6, 7, 1]
+    5 | [3, 4] | [5, 6, 7, 1, 2] | [5, 6, 7, 1, 2, 3, 4]
+    2 | [3, 4] | [5, 6, 7, 1, 2] | [1, 2, 3, 4, 5, 6, 7]
+  }
+
   @Unroll
   def "test list rotate #a right #m places"() {
     given:
@@ -50,7 +63,7 @@ class InterleaverUtilitiesTest extends Specification {
   def "test array rotate #a right #m places"() {
     given:
     def from = 1
-    def to = a.length - 1 
+    def to = a.length - 1
     expect:
     Util.rotateViaTripleReverse(a, from, to, m, false)
     a[from..<to].toArray() == expected.toArray()

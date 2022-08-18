@@ -17,7 +17,7 @@ class TwoListInterleaverTest extends InterleaversBase {
   @Shared
   def interleavers = [
       "a025480"    : InPlaceInterleaver::interleave,
-//      "permutation": PermutationInterleaver::interleave,
+      "permutation": PermutationInterleaver::interleave,
       "recursive"  : RecursiveInterleaver::interleave
   ]
 
@@ -33,9 +33,9 @@ class TwoListInterleaverTest extends InterleaversBase {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, false, false)
     expect:
+    println collection1 + " " + collection2
     collection1 == expected1
     collection2 == expected2
-    println collection1 + " " + collection2
     where:
     [data, algo] << [getTypes()["outShuffle2"], interleavers.keySet()].combinations()
     collection1 = new ArrayList(data[1])
@@ -50,9 +50,9 @@ class TwoListInterleaverTest extends InterleaversBase {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, true, false)
     expect:
+    println collection1 + " " + collection2
     collection1 == expected1
     collection2 == expected2
-    println collection1 + " " + collection2
     where:
     [data, algo] << [getTypes()["inShuffle2"], interleavers.keySet()].combinations()
     collection1 = new ArrayList(data[1])
@@ -67,9 +67,9 @@ class TwoListInterleaverTest extends InterleaversBase {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, false, true)
     expect:
+    println collection1 + " " + collection2
     collection1 == expected1
     collection2 == expected2
-    println collection1 + " " + collection2
     where:
     [data, algo] << [getTypes()["foldingOutShuffle2"], interleavers.keySet()].combinations()
     collection1 = new ArrayList(data[1])
@@ -84,9 +84,9 @@ class TwoListInterleaverTest extends InterleaversBase {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, true, true)
     expect:
+    println collection1 + " " + collection2
     collection1 == expected1
     collection2 == expected2
-    println collection1 + " " + collection2
     where:
     [data, algo] << [getTypes()["foldingInShuffle2"], interleavers.keySet()].combinations()
     collection1 = new ArrayList(data[1])
