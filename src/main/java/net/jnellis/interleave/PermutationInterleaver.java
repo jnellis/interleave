@@ -130,11 +130,9 @@ public class PermutationInterleaver {
     int minSize = Math.min(a.size(), b.size());
     if (a.size() == 0) {
       interleave(b);
-    } else if(b.size() == 0){
-      interleave(a);
-    } else if(a.size() + b.size() == 2){
-      a.set(0, b.set(0,a.get(0)));
-    }else {
+    } else if (a.size() + b.size() == 2) {
+      a.set(0, b.set(0, a.get(0)));
+    } else {
 
       // Find a 2m = 3^k − 1 such that 3^k ≤ 2n < 3^(k+1)
       int size = a.size() + b.size();
@@ -142,8 +140,12 @@ public class PermutationInterleaver {
       int k = (int) (Math.log(size) / Math.log(3));
       int m = (int) (Math.pow(3, k) - 1) / 2;
       // Do a right cyclic shift of A[m + 1, . . . , n + m] by a distance m
-      int aEnd = Math.min(m+n,a.size());
-      Util.rotateRight(a.subList(m, aEnd), b.subList(0,m+n-a.size()), m);
+      int aEnd = Math.min(m + n, a.size());
+      if (m > aEnd) {  // just rotate b side
+        Util.rotateRight(b.subList(m-a.size(), m+n-a.size()), m);
+      } else {
+        Util.rotateRight(a.subList(m, aEnd), b.subList(0, m + n - a.size()), m);
+      }
       // For each i ∈ {0, 1, . . . , k − 1}, starting at 3i, do the cycle leader
       // algorithm for the in-shuffle permutation of order 2m
       int mod = (int) Math.pow(3, k);
@@ -151,22 +153,22 @@ public class PermutationInterleaver {
       for (int i = 0; i < k; i++) {
         int idx = startIdx;
         int lIdx = startIdx - 1;
-        T leader = lIdx < a.size() ? a.get(lIdx) : b.get(lIdx - m);
+        T leader = lIdx < a.size() ? a.get(lIdx) : b.get(lIdx - a.size());
         do {
           idx <<= 1;
           if (idx >= mod)
             idx %= mod;
           int abx = idx - 1;
-          leader =  abx < a.size() ? a.set(abx, leader)
-                                   : b.set(abx - a.size(), leader);
+          leader = abx < a.size() ? a.set(abx, leader)
+                                  : b.set(abx - a.size(), leader);
         } while (idx != startIdx);
         startIdx *= 3;
       }
       // Recursively do the in-shuffle algorithm on A[2m + 1, . . . , 2n]
-      if(a.size() <= 2*m){
-        interleave(b.subList(2*m-a.size(), b.size()));
-      }else{
-        interleave(a.subList(2*m, a.size()), b);
+      if (a.size() <= 2 * m) {
+        interleave(b.subList(2 * m - a.size(), b.size()));
+      } else {
+        interleave(a.subList(2 * m, a.size()), b);
       }
 
     }

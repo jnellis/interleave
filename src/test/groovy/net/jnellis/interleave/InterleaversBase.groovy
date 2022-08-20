@@ -7,6 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals
 
 class InterleaversBase extends Specification {
 
+  // comment/uncomment to choose between regular test collections or one big one.
+  @Shared
+  int[] maxes = [2, 3, 4, 9, 10, 11, 31, 32, 33, 999, 1000, 1001, 999999, 1_000_000]
+//  int[] maxes = [10_000_000]
+
   def odds, evens
 
   def init(max) {

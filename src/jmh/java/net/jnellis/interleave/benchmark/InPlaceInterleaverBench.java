@@ -5,6 +5,7 @@ import net.jnellis.interleave.PermutationInterleaver;
 import net.jnellis.interleave.RecursiveInterleaver;
 import net.jnellis.interleave.RotatingQueueInterleaver;
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
@@ -27,81 +28,107 @@ public class InPlaceInterleaverBench {
   List<Object> list;
   Object[] arr;
 
-  @Setup
+  @Setup(Level.Iteration)
   public void setup() {
     list = IntStream.range(0, max)
                     .boxed()
                     .collect(Collectors.toCollection(ArrayList::new));
-    arr = IntStream.range(0,max).boxed().toArray();
+    arr = IntStream.range(0, max).boxed().toArray();
   }
 
   @Benchmark
-  public List<Object> rotatingQueueInterleaveBench() {
+  public List<Object> rotatingQueueTwoListInShuffle() {
     return RotatingQueueInterleaver.interleave(
         list.subList(0, max / 2),
         list.subList(max / 2, list.size()),
-        false);
+        true);
   }
 
   @Benchmark
-  public Object[] aO25480ArrayInterleaveBench(){
-    InPlaceInterleaver.interleave(arr, false,false);
+  public Object[] aO25480OneArrayInShuffle() {
+    InPlaceInterleaver.interleave(arr, false, false);
     return arr;
   }
 
   @Benchmark
-  public List<Object> a025480ListInterleaveBench() {
+  public List<Object> a025480OneListInShuffle() {
     InPlaceInterleaver.interleave(list, false, false);
     return list;
   }
 
   @Benchmark
-  public List<Object> a025480ListShuffleBench() {
+  public List<Object> a025480OneListOutShuffle() {
     InPlaceInterleaver.interleave(list, true, false);
     return list;
   }
 
   @Benchmark
-  public List<Object> a025480ListFoldingBench() {
+  public List<Object> a025480OneListFoldingOutShuffle() {
     InPlaceInterleaver.interleave(list, false, true);
     return list;
   }
 
   @Benchmark
-  public List<Object> a025480ListFoldingShuffleBench() {
+  public List<Object> a025480OneListFoldingInShuffle() {
     InPlaceInterleaver.interleave(list, true, true);
     return list;
   }
 
   //// PermutationInterleaver benchmarks
   @Benchmark
-  public List<Object> permutationListInterleaveBench() {
+  public List<Object> permutationOneListOutShuffle() {
     PermutationInterleaver.interleave(list, false, false);
     return list;
   }
 
   @Benchmark
-  public List<Object> permutationListShuffleBench() {
+  public List<Object> permutationOneListInShuffle() {
     PermutationInterleaver.interleave(list, true, false);
     return list;
   }
 
   @Benchmark
-  public List<Object> permutationListFoldingBench() {
+  public List<Object> permutationOneListFoldingOutShuffle() {
     PermutationInterleaver.interleave(list, false, true);
     return list;
   }
 
   @Benchmark
-  public List<Object> permutationListFoldingShuffleBench() {
+  public List<Object> permutationOneListFoldingInShuffle() {
     PermutationInterleaver.interleave(list, true, true);
     return list;
   }
 
   //// RecursiveInterleaver benchmarks
   @Benchmark
-  public List<Object> recursiveListInterleaveBench() {
+  public List<Object> recursiveOneListOutShuffle() {
     RecursiveInterleaver.interleave(list, false, false);
+    return list;
+  }
+
+  // two list benches
+  @Benchmark
+  public List<Object> a025480TwoListInShuffle() {
+    InPlaceInterleaver.interleave(list.subList(0, max / 2),
+                                  list.subList(max / 2, list.size()),
+                                  true,
+                                  false);
+    return list;
+  }
+  @Benchmark
+  public List<Object> permutationTwoListInShuffle() {
+    PermutationInterleaver.interleave(list.subList(0, max / 2),
+                                  list.subList(max / 2, list.size()),
+                                  true,
+                                  false);
+    return list;
+  }
+  @Benchmark
+  public List<Object> recursiveTwoListInShuffle() {
+    RecursiveInterleaver.interleave(list.subList(0, max / 2),
+                                  list.subList(max / 2, list.size()),
+                                  true,
+                                  false);
     return list;
   }
 

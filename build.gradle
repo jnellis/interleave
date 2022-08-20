@@ -52,18 +52,18 @@ dependencies {
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["InPlace.*ArrayInterleaveBench" ]
+  include = ["permutationTwoList" ]
   iterations = 10
-  warmupIterations = 5
+  warmupIterations = 10
   jmhVersion = '1.35'
   benchmarkMode = ['avgt']
   resultFormat = 'JSON'
   resultsFile = reportFile
-//  profilers=['stack']
+//  profilers=['jfr']
   fork = 2
-  timeUnit = 'ns'
-  timeOnIteration = '1s'
-  warmup = '1s'
+  timeUnit = 'us'
+  timeOnIteration = '2s'
+  warmup = '2s'
   includeTests = false
 //  jvmArgs = ['-Djmh.separateClasspathJAR']
 //  benchmarkParameters = ['maxPieceSize':[20,50,100],'BINS':[50,100]]

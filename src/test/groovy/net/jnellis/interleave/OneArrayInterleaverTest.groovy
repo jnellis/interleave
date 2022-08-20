@@ -13,9 +13,6 @@ class OneArrayInterleaverTest extends InterleaversBase {
       "recursive"  : RecursiveInterleaver::interleave
   ]
 
-  @Shared
-  int[] maxes = [2, 3, 4, 9, 10, 11, 31, 32, 33, 999, 1000, 1001, 999999, 1000000]
-
   def paramCombinations() {
     [maxes, interleavers.keySet()].combinations()*.flatten()
   }

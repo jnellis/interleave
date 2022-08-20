@@ -36,7 +36,7 @@ public class CyclicShiftBench {
 
   @Benchmark
   public List<Object> tripleReverseMethod(){
-    Util.rotateViaTripleReverse(list, by);
+    Util.rotateViaTripleReverse(list, by,false);
     return list;
   }
 
