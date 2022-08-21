@@ -23,7 +23,7 @@ class InterleaverUtilitiesTest extends Specification {
   def "test two list rotate"() {
     expect:
     Util.rotateRight(a, b, m)
-    a + b == expected 
+    a + b == expected
     where:
     m | a      | b               | expected
     3 | [3, 4] | [5, 6, 7, 1, 2] | [7, 1, 2, 3, 4, 5, 6]
@@ -31,6 +31,22 @@ class InterleaverUtilitiesTest extends Specification {
     1 | [3, 4] | [5, 6, 7, 1, 2] | [2, 3, 4, 5, 6, 7, 1]
     5 | [3, 4] | [5, 6, 7, 1, 2] | [5, 6, 7, 1, 2, 3, 4]
     2 | [3, 4] | [5, 6, 7, 1, 2] | [1, 2, 3, 4, 5, 6, 7]
+  }
+
+  def "test two array rotate"() {
+    expect:
+    def aa = a.toArray()
+    def bb = b.toArray()
+    Util.rotateRight(aa, 1, a.size(),
+        bb, 0, b.size() - 1, m)
+    aa + bb == expected.toArray()
+    where:
+    m | a         | b               | expected
+    3 | [0, 3, 4] | [5, 6, 7, 1, 2] | [0, 6, 7, 1, 3, 4, 5, 2]
+    0 | [0, 3, 4] | [5, 6, 7, 1, 2] | [0, 3, 4, 5, 6, 7, 1, 2]
+    1 | [0, 3, 4] | [5, 6, 7, 1, 2] | [0, 1, 3, 4, 5, 6, 7, 2]
+    5 | [0, 3, 4] | [5, 6, 7, 1, 2] | [0, 4, 5, 6, 7, 1, 3, 2]
+    2 | [0, 3, 4] | [5, 6, 7, 1, 2] | [0, 7, 1, 3, 4, 5, 6, 2]
   }
 
   @Unroll

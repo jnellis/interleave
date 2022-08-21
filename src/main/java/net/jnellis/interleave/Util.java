@@ -133,17 +133,47 @@ public final class Util {
   static public <T> void rotateRight(List<T> a, List<T> b, int positions) {
     int n = a.size() + b.size();
     int m = positions % n;
-    int sets = gcd(n,m);
+    int sets = gcd(n, m);
     for (int i = 0; i < sets; i++) {
-      T temp = i >= a.size() ? b.get(i-a.size()) : a.get(i);
+      T temp = i >= a.size() ? b.get(i - a.size()) : a.get(i);
       int j = i;
-      do{
+      do {
         j += m;
-        if (j >= n){
+        if (j >= n) {
           j %= n;
         }
-        temp = j >= a.size() ? b.set(j-a.size(),temp) : a.set(j, temp);
-      } while( j != i);
+        temp = j >= a.size() ? b.set(j - a.size(), temp) : a.set(j, temp);
+      } while (j != i);
+    }
+  }
+
+  static public <T> void rotateRight(T[] a, int froma, int toa,
+                                     T[] b, int fromb, int tob,
+                                     int positions) {
+    int asize = toa - froma, bsize = tob - fromb;
+    int n = asize + bsize;
+    int m = positions % n;
+    int sets = gcd(n, m);
+    for (int i = 0; i < sets; i++) {
+      T temp = i >= asize ? b[fromb + i - asize] : a[froma+i];
+      int j = i;
+      do {
+        j += m;
+        if (j >= n) {
+          j %= n;
+        }
+        if(j>=asize){
+          int idx = fromb+j-asize;
+          T temp2 = b[idx];
+          b[idx] = temp;
+          temp = temp2;
+        } else{
+          int idx = froma+j;
+          T temp2 = a[idx];
+          a[idx] = temp;
+          temp = temp2;
+        }
+      } while (j != i);
     }
   }
 
