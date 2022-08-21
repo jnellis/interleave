@@ -208,10 +208,10 @@ public class InPlaceInterleaver{
     int minSize = Math.min(a.length, b.length);
     int i = 0;
     if (folding) {
-      // Reverse array B, but only as much as the smallest of array A or B.
-      // Special case for in-shuffle, reverse the whole list regardless of size
-      // as we lead with this element and the leftover, if odd sized, is ignored.
-      Util.reverse(b ,0 , shuffle ? b.length : minSize);
+      // Rotate extra items to the back
+      Util.rotateLeft(b, b.length - minSize);
+      // then reverse the part we intend to interleave.
+      Util.reverse(b, 0, minSize);
     }
 
     if (!shuffle) { // if true then don't skip the first element in array A
