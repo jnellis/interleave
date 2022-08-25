@@ -147,6 +147,43 @@ public final class Util {
     }
   }
 
+  static public <T> void rotate(T[] a, int froma, int toa,
+                                T[] b, int fromb, int tob,
+                                int distance) {
+    int asize = toa - froma;
+    int size = asize + (tob - fromb);
+    if (size == 0)
+      return;
+    distance = distance % size;
+    if (distance < 0)
+      distance += size;
+    if (distance == 0)
+      return;
+
+    for (int cycleStart = 0, nMoved = 0; nMoved != size; cycleStart++) {
+      T displaced = cycleStart > asize ? b[fromb + cycleStart - asize]
+                                       : a[froma + cycleStart];
+      int i = cycleStart;
+      do {
+        i += distance;
+        if (i >= size)
+          i -= size;
+        if(i >= asize){
+          int idx = fromb + i - asize;
+          T temp = b[idx];
+          b[idx] = displaced;
+          displaced = temp;
+        } else{
+          int idx = froma + i;
+          T temp = a[idx];
+          a[idx] = displaced;
+          displaced = temp;
+        }
+        nMoved++;
+      } while (i != cycleStart);
+    }
+  }
+
   static public <T> void rotateRight(T[] a, int froma, int toa,
                                      T[] b, int fromb, int tob,
                                      int positions) {
@@ -155,20 +192,20 @@ public final class Util {
     int m = positions % n;
     int sets = gcd(n, m);
     for (int i = 0; i < sets; i++) {
-      T temp = i >= asize ? b[fromb + i - asize] : a[froma+i];
+      T temp = i >= asize ? b[fromb + i - asize] : a[froma + i];
       int j = i;
       do {
         j += m;
         if (j >= n) {
           j %= n;
         }
-        if(j>=asize){
-          int idx = fromb+j-asize;
+        if (j >= asize) {
+          int idx = fromb + j - asize;
           T temp2 = b[idx];
           b[idx] = temp;
           temp = temp2;
-        } else{
-          int idx = froma+j;
+        } else {
+          int idx = froma + j;
           T temp2 = a[idx];
           a[idx] = temp;
           temp = temp2;

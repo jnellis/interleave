@@ -8,6 +8,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -49,6 +50,12 @@ public class CyclicShiftBench {
   @Benchmark
   public List<Object> leftCycleLeaderMethod(){
     Util.rotateLeft(list, by);
+    return list;
+  }
+
+  @Benchmark
+  public List<Object> collectionsRotate(){
+    Collections.rotate(list,by);
     return list;
   }
 }
