@@ -17,7 +17,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   def interleavers = [
       "a025480": InPlaceInterleaver::interleave,
       "permutation": PermutationInterleaver::interleave,
-//      "recursive"  : RecursiveInterleaver::interleave
+      "recursive"  : RecursiveInterleaver::interleave
   ]
 
   def paramCombinations() {
@@ -25,7 +25,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "two list out-shuffle, unexpected behavior example"() {
+  def "two array out-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, false, false)
     expect:
@@ -42,7 +42,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "two list in-shuffle, unexpected behavior example"() {
+  def "two array in-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, true, false)
     expect:
@@ -59,7 +59,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "two list folding out-shuffle, unexpected behavior example"() {
+  def "two array folding out-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, false, true)
     expect:
@@ -76,7 +76,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "two list folding in-shuffle, unexpected behavior example"() {
+  def "two array folding in-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, true, true)
     expect:
@@ -155,14 +155,14 @@ class TwoArrayInterleaversTest extends InterleaversBase {
     init(max)
     expect:
     Collections.reverse(odds)
-    twoCollectionTest(interleavers[algo], max, evens, odds, true, true)
+    twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), true, true)
     if (parity === "odd") {
       init(max)
       // try it with larger list on evens side
       odds.removeLast()
       evens.add(-1)
       Collections.reverse(odds)
-      twoCollectionTest(interleavers[algo], max, evens, odds, true, true)
+      twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), true, true)
     }
     where:
     [max, algo] << paramCombinations()
