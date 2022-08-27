@@ -6,34 +6,35 @@ import java.util.List;
 /**
  * User: Joe Nellis Date: 5/16/2022 Time: 12:47 PM
  */
-public class PermutationInterleaver {
+public class PermutationInterleaver implements Interleaver {
 
-  public static <T> void interleave(List<T> list,
-                                    boolean inShuffle,
-                                    boolean folding) {
-    if (!inShuffle) { // out-shuffle
+  public <T> void interleave(List<T> list, Shuffle shuffle) {
+    if (!shuffle.in) { // out-shuffle
       list = list.subList(1, list.size());
     }
-    if (folding) {
+    if (shuffle.folding) {
       Collections.reverse(list.subList(list.size() / 2, list.size()));
     }
     interleave(list);
   }
 
-  public static <T> void interleave(T[] arr,
-                                    boolean inShuffle,
-                                    boolean folding) {
-    int from = 0, to = arr.length;
-    if (!inShuffle) { // out-shuffle
-      from++;
-    }
-    if (folding) {
-      Util.reverse(arr, (arr.length + from) / 2, arr.length);
-    }
-    interleave(arr, from, to);
+  public <T> void interleave(T[] array, Shuffle shuffle) {
+    interleave(array, 0, array.length, shuffle);
   }
 
-  private static <T> void interleave(List<T> list) {
+  @Override
+  public <T> void interleave(T[] array , int from, int to, Shuffle shuffle) {
+    if (!shuffle.in) { // out-shuffle
+      from++;
+    }
+    if (shuffle.folding) {
+      Util.reverse(array, (array.length + from) / 2, array.length);
+    }
+    interleave(array, from, to);
+
+  }
+
+  private <T> void interleave(List<T> list) {
     int size = list.size();
     if (size == 2) { // swap
       list.set(0, list.set(1, list.get(0)));
@@ -66,7 +67,7 @@ public class PermutationInterleaver {
     interleave(list.subList(2 * m, size));
   }
 
-  public static <T> void interleave(T[] arr, int from, int to) {
+  private <T> void interleave(T[] arr, int from, int to) {
     int size = to - from;
     if (size == 2) { // swap
       Util.swap(arr, from, to - 1);
@@ -101,12 +102,9 @@ public class PermutationInterleaver {
     interleave(arr, from + (2 * m), from + size);
   }
 
-  public static <T> void interleave(List<T> a,
-                                    List<T> b,
-                                    boolean inShuffle,
-                                    boolean folding) {
+  public <T> void interleave(List<T> a, List<T> b, Shuffle shuffle) {
     int minSize = Math.min(a.size(), b.size());
-    if (folding) {
+    if (shuffle.folding) {
       // rotate non-interleaved items to the back
       Util.rotateLeft(b, b.size() - minSize);
       // reverse the rest
@@ -118,16 +116,14 @@ public class PermutationInterleaver {
     if (b.size() > minSize) {
       b = b.subList(0, minSize);
     }
-    if (!inShuffle) { // out-shuffle
+    if (!shuffle.in) { // out-shuffle
       a = a.subList(1, a.size());
-      b = b.subList(0, minSize - 1);
-      minSize--;
+      b = b.subList(0, minSize - 1); 
     }
     interleave(a, b);
   }
 
-  private static <T> void interleave(List<T> a, List<T> b) {
-    int minSize = Math.min(a.size(), b.size());
+  private <T> void interleave(List<T> a, List<T> b) { 
     if (a.size() == 0) {
       interleave(b);
     } else if (a.size() + b.size() == 2) {
@@ -175,48 +171,56 @@ public class PermutationInterleaver {
 
   }
 
-  public static <T> void interleave(T[] a,
-                                    T[] b,
-                                    boolean inShuffle,
-                                    boolean folding) {
+  public <T> void interleave(T[] a, T[] b, Shuffle shuffle) {
 
     int minSize = Math.min(a.length, b.length);
-    if (folding) {
+    if (shuffle.folding) {
       // rotate non-interleaved items to the back
       Util.rotateLeft(b, b.length - minSize);
       // reverse the rest
       Util.reverse(b, 0, minSize);
     }
-    int froma = 0, fromb = 0, toa = minSize, tob = minSize;
-    if (!inShuffle) { // out-shuffle
+    int fromA = 0, fromB = 0, toa = minSize, tob = minSize;
+    if (!shuffle.in) { // out-shuffle
       minSize--;
-      froma = 1;
+      fromA = 1;
       tob = minSize;
     }
-    interleave(a, froma, toa, b, fromb, tob);
+    interleave(a, fromA, toa, b, fromB, tob);
   }
 
-  private static <T> void interleave(T[] a, int froma, int toa,
-                                     T[] b, int fromb, int tob) {
-    int asize = toa - froma, bsize = tob - fromb;
-    if (toa - froma == 0) {
-      interleave(b, fromb, tob);
-    } else if (asize + bsize == 2) {
-      Util.swap(a, froma, b, fromb);
+  @Override
+  public <T> void interleave(T[] a,
+                             int fromA,
+                             int toA,
+                             T[] b,
+                             int fromB,
+                             int toB,
+                             Shuffle shuffle) {
+
+  }
+
+  private <T> void interleave(T[] a, int fromA, int toa,
+                              T[] b, int fromB, int tob) {
+    int aSize = toa - fromA, bsize = tob - fromB;
+    if (toa - fromA == 0) {
+      interleave(b, fromB, tob);
+    } else if (aSize + bsize == 2) {
+      Util.swap(a, fromA, b, fromB);
     } else {
 
       // Find a 2m = 3^k − 1 such that 3^k ≤ 2n < 3^(k+1)
-      int size = asize + bsize;
+      int size = aSize + bsize;
       int n = size / 2;
       int k = (int) (Math.log(size) / Math.log(3));
       int m = (int) (Math.pow(3, k) - 1) / 2;
       // Do a right cyclic shift of A[m + 1, . . . , n + m] by a distance m
-      int aEnd = Math.min(m + n, asize);
+      int aEnd = Math.min(m + n, aSize);
       if (m > aEnd) {  // just rotate b side
-        Util.rotateRight(b, fromb + m - asize, fromb + m + n - asize, m);
+        Util.rotateRight(b, fromB + m - aSize, fromB + m + n - aSize, m);
       } else {
-        Util.rotateRight(a, froma + m, froma + aEnd,
-                         b, fromb, fromb + m + n - asize, m);
+        Util.rotateRight(a, fromA + m, fromA + aEnd,
+                         b, fromB, fromB + m + n - aSize, m);
       }
       // For each i ∈ {0, 1, . . . , k − 1}, starting at 3i, do the cycle leader
       // algorithm for the in-shuffle permutation of order 2m
@@ -225,31 +229,31 @@ public class PermutationInterleaver {
       for (int i = 0; i < k; i++) {
         int idx = startIdx;
         int lIdx = startIdx - 1;
-        T leader = lIdx < asize ? a[froma + lIdx] : b[fromb + lIdx - asize];
+        T leader = lIdx < aSize ? a[fromA + lIdx] : b[fromB + lIdx - aSize];
         do {
           idx <<= 1;
           if (idx >= mod)
             idx %= mod;
           int abx = idx - 1;
-          if (abx < asize) {
-            int idxa = froma + abx;
-            T tempLeader = a[idxa];
-            a[idxa] = leader;
+          if (abx < aSize) {
+            int idxA = fromA + abx;
+            T tempLeader = a[idxA];
+            a[idxA] = leader;
             leader = tempLeader;
           } else {
-            int idxb = fromb + abx - asize;
-            T tempLeader = b[idxb];
-            b[idxb] = leader;
+            int idxB = fromB + abx - aSize;
+            T tempLeader = b[idxB];
+            b[idxB] = leader;
             leader = tempLeader;
           }
         } while (idx != startIdx);
         startIdx *= 3;
       }
       // Recursively do the in-shuffle algorithm on A[2m + 1, . . . , 2n]
-      if (asize <= 2 * m) {
-        interleave(b, fromb + 2 * m - asize, tob);
+      if (aSize <= 2 * m) {
+        interleave(b, fromB + 2 * m - aSize, tob);
       } else {
-        interleave(a, froma + 2 * m, toa, b, fromb, tob);
+        interleave(a, fromA + 2 * m, toa, b, fromB, tob);
       }
     }
   }

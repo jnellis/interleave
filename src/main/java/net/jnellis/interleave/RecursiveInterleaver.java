@@ -6,14 +6,12 @@ import java.util.List;
 /**
  * User: Joe Nellis Date: 6/5/2022 Time: 11:51 AM
  */
-public class RecursiveInterleaver {
-  public static <T> void interleave(List<T> list,
-                                    boolean inShuffle,
-                                    boolean folding) {
-    if (!inShuffle) { // out-shuffle
+public class RecursiveInterleaver implements Interleaver{
+  public <T> void interleave(List<T> list, Shuffle shuffle) {
+    if (!shuffle.in) { // out-shuffle
       list = list.subList(1, list.size());
     }
-    if (folding) {
+    if (shuffle.folding) {
       Collections.reverse(list.subList(list.size() / 2, list.size()));
     }
 
@@ -37,12 +35,12 @@ public class RecursiveInterleaver {
       interleave(a, b, k);
       // process the remaining part of the list
       if (n > k) { // if n was a power of two already, then stop
-        interleave(list.subList(2 * k, list.size()), true, false);
+        interleave(list.subList(2 * k, list.size()), Shuffle.IN);
       }
     }
   }
 
-  public static <T> void interleave(List<T> list) {
+  private <T> void interleave(List<T> list) {
     int n = list.size() >> 1;
     if (n < 2) {
       if (n == 0) {
@@ -61,7 +59,7 @@ public class RecursiveInterleaver {
     }
   }
 
-  private static <T> void interleave(List<T> a, List<T> b, int n) {
+  private <T> void interleave(List<T> a, List<T> b, int n) {
     if (n == 1) {
       a.set(0, b.set(0, a.get(0))); // swap
     } else {
@@ -82,12 +80,9 @@ public class RecursiveInterleaver {
     }
   }
 
-  public static <T> void interleave(List<T> a,
-                                    List<T> b,
-                                    boolean inShuffle,
-                                    boolean folding) {
+  public <T> void interleave(List<T> a,  List<T> b, Shuffle shuffle) {
     int minSize = Math.min(a.size(), b.size());
-    if (folding) {
+    if (shuffle.folding) {
       // rotate non-interleaved items to the back
       Util.rotateLeft(b, b.size() - minSize);
       // reverse the rest
@@ -99,7 +94,7 @@ public class RecursiveInterleaver {
     if (b.size() > minSize) {
       b = b.subList(0, minSize);
     }
-    if (!inShuffle) { // out-shuffle
+    if (!shuffle.in) { // out-shuffle
       a = a.subList(1, a.size());
       b = b.subList(0, minSize - 1);
       minSize--;
@@ -115,11 +110,6 @@ public class RecursiveInterleaver {
       // work only on lists whose size is a power of two.
       int k = 1 << Util.log2(minSize);
 
-//      if (n != k) { // only rotate if n is not a power of two
-//        Util.rotateLeft(list.subList(k, k + n), n - k);
-//      }
-//      List<T> a = list.subList(0, k);
-//      List<T> b = list.subList(k, 2 * k);
       interleave(a, b, k);
       // process the remaining part of the list
       if (minSize > k) { // if n was a power of two already, then stop
@@ -131,29 +121,21 @@ public class RecursiveInterleaver {
 
         //then rotate listB and perform single list interleave
         interleave(
-            b.subList(k - (minSize - k), b.size()),
-            false,
-            false);
+            b.subList(k - (minSize - k), b.size()), Shuffle.OUT);
       }
     }
 
   }
 
-  public static <T> void interleave(T[] arr,
-                                    boolean inShuffle,
-                                    boolean folding){
-    interleave(arr,0,arr.length,inShuffle,folding);
+  public <T> void interleave(T[] arr, Shuffle shuffle){
+    interleave(arr,0,arr.length,shuffle);
   }
 
-  public static <T> void interleave(T[] arr,
-                                    int from,
-                                    int to,
-                                    boolean inShuffle,
-                                    boolean folding) {
-    if (!inShuffle) { // out-shuffle
+  public <T> void interleave(T[] arr,  int from,  int to, Shuffle shuffle) {
+    if (!shuffle.in) { // out-shuffle
       from++;
     }
-    if (folding) {
+    if (shuffle.folding) {
       Util.reverse(arr, from + (to - from) / 2, to);
     }
     interleave(arr, from, to);
@@ -162,12 +144,12 @@ public class RecursiveInterleaver {
   /**
    * Processes the interleaving at powers of 2 items at a time.
    *
-   * @param arr
+   * @param array
    * @param from
    * @param to
    * @param <T>
    */
-  private static <T> void interleave(T[] arr, int from, int to) {
+  private <T> void interleave(T[] array, int from, int to) {
     int size = to - from;
     int n = size >> 1;
     if (n < 2) {
@@ -175,67 +157,71 @@ public class RecursiveInterleaver {
         return;
       }
       // just swap these two
-      Util.swap(arr, from, from + 1);
+      Util.swap(array, from, from + 1);
     } else {
       // work only on lists whose size is a power of two.
       int k = 1 << Util.log2(n);
 
       if (n != k) { // only rotate if n is not a power of two
         // rotate the part we interleave into view
-        Util.rotateLeft(arr, from + k, from + k + n, n - k);
+        Util.rotateLeft(array, from + k, from + k + n, n - k);
       }
-      interleave(arr, from, from + k,
-                 arr, from + k, from + k + k,
+      interleave(array, from,
+                 array, from + k,
                  k);
       // process the remaining part of the list
       if (n > k) { // if n was a power of two already, then stop
-        interleave(arr, from + k + k, to);
+        interleave(array, from + k + k, to);
       }
     }
   }
 
-  private static <T> void interleave(T[] arra, int froma, int toa,
-                                     T[] arrb, int fromb, int tob, int n) {
-    int asize = toa - froma;
+  private <T> void interleave(T[] a, int fromA,
+                              T[] b, int fromB, int n) {
     if (n == 1) {
-      Util.swap(arra, froma, arrb, fromb); // swap
+      Util.swap(a, fromA, b, fromB); // swap
     } else {
       // swap all of list a
       for (int i = 0; i < n; i++) {
-        Util.swap(arra, froma + i, arrb, fromb + Util.a025480(i));
+        Util.swap(a, fromA + i, b, fromB + Util.a025480(i));
       }
       // unscramble first half of list b
       for (int i = 2; i <= n / 2; i <<= 1) {
         if (i / 2 == 1) {
-          Util.swap(arrb, fromb, fromb + 1);
+          Util.swap(b, fromB, fromB + 1);
         } else {
-          interleave(arrb, fromb, fromb + i / 2,
-                     arrb, fromb + i / 2, fromb + i,
+          interleave(b, fromB,
+                     b, fromB + i / 2,
                      i / 2);
         }
       }
       // recursive interleave on list b
-      interleave(arrb, fromb, fromb + n / 2,
-                 arrb, fromb + n / 2, n,
+      interleave(b, fromB,
+                 b, fromB + n / 2,
                  n / 2);
     }
   }
 
-  public static <T> void interleave(T[] a,
-                                    T[] b,
-                                    boolean inShuffle,
-                                    boolean folding) {
+  @Override
+  public <T> void interleave(T[] a,
+                             int fromA,
+                             int toA,
+                             T[] b,
+                             int fromB,
+                             int toB,
+                             Shuffle shuffle) {
     int minSize = Math.min(a.length, b.length);
-    if (folding) {
+    if (shuffle.folding) {
       // rotate non-interleaved items to the back
       Util.rotateLeft(b, b.length - minSize);
       // reverse the rest
       Util.reverse(b, 0, minSize);
     }
-    int froma = 0, toa = minSize, fromb = 0, tob = minSize;
-    if (!inShuffle) { // out-shuffle
-      froma++;
-      tob--;
+    toA = minSize;
+    toB = minSize;
+    if (!shuffle.in) { // out-shuffle
+      fromA++;
+      toB--;
       minSize--;
     }
     if (minSize < 2) {
@@ -243,48 +229,52 @@ public class RecursiveInterleaver {
         return;
       }
       // just swap these two
-      Util.swap(a, froma, b, fromb);
+      Util.swap(a, fromA, b, fromB);
     } else {
       // work only on lists whose size is a power of two.
       int k = 1 << Util.log2(minSize);
-      interleaveUpToPowerOf2(a, froma, toa, b, fromb, tob, k);
+      interleaveUpToPowerOf2(a, fromA, toA, b, fromB, toB, k);
       if (minSize > k) { // if n was a power of two already then we are done.
         // The amount of final work done in b[] is larger than what is leftover
         // in a[] so swap n-k from the front of b[] to back of array a[].
         for (int j = 0; j < minSize - k; j++) {
-          Util.swap(a, froma + k + j, b, fromb + j);
+          Util.swap(a, fromA + k + j, b, fromB + j);
         }
         // then finally rotate remainder of a[] that's in b[] into position
-        Util.rotateLeft(b, fromb, tob, minSize - k);
+        Util.rotateLeft(b, fromB, toB, minSize - k);
         // and perform single list interleave
-        interleave(b, fromb + 2 * k - minSize, tob, false, false);
+        interleave(b, fromB + 2 * k - minSize, toB, Shuffle.OUT);
       }
     }
   }
 
-  private static <T> void interleaveUpToPowerOf2(T[] a, int froma, int toa,
-                                                 T[] b, int fromb, int tob,
+  public <T> void interleave(T[] a,  T[] b, Shuffle shuffle) {
+    interleave(a, 0, a.length, b, 0, b.length, shuffle);
+  }
+
+  private <T> void interleaveUpToPowerOf2(T[] a, int fromA, int toA,
+                                                 T[] b, int fromB, int toB,
                                                  int n) {
     if (n == 1) {
-      Util.swap(a, froma, b, fromb);
+      Util.swap(a, fromA, b, fromB);
     } else {
       // swap all of list a
       for (int i = 0; i < n; i++) {
-        Util.swap(a, froma + i, b, fromb + Util.a025480(i));
+        Util.swap(a, fromA + i, b, fromB + Util.a025480(i));
       }
       // unscramble first half of list b
       for (int i = 2; i <= n / 2; i <<= 1) {
         if (i / 2 == 1) {
-          Util.swap(b, fromb, fromb + 1); // save a call
+          Util.swap(b, fromB, fromB + 1); // save a call
         } else {
-          interleave(b, fromb, fromb + i / 2,
-                     b, fromb + i / 2, fromb + i,
+          interleave(b, fromB,
+                     b, fromB + i / 2,
                      i / 2);
         }
       }
       // recursive interleave on list b
-      interleave(b, fromb, fromb+n/2,
-                 b, fromb+n/2, fromb+n,
+      interleave(b, fromB,
+                 b, fromB+n/2,
                  n / 2);
     }
   }

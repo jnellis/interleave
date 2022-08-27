@@ -12,9 +12,9 @@ import java.util.List;
  *
  * @see <a href="https://en.wikipedia.org/wiki/Faro_shuffle">Faro shuffle</a>
  */
-public class InPlaceInterleaver{
+public class InPlaceInterleaver implements Interleaver{
 
-  private InPlaceInterleaver(){}
+  public InPlaceInterleaver(){}
 
   /**
    * Interleaves the lower and upper halves of the <b><i>modifiable</i></b> list
@@ -40,17 +40,10 @@ public class InPlaceInterleaver{
    * <pre>Ex. A,B,C, X,Y,Z  becomes Z,A,Y,B,X,C</pre>
    *
    * @param pieces  List to be reordered.
-   * @param shuffle if false, performs an out-shuffle, the first and last piece
-   *                remain unchanged, if true, performs and in-shuffle which
-   *                starts with a piece from the upper half of the list.
-   * @param folding if true, fold at the middle and interleave front and back
-   *                ends of the list.
-   * @param <T>     Type of object being ordered.
-   * @return the same list of pieces, interleaved
+   * @param shuffle
    */
-  public static <T> void interleave(final List<T> pieces,
-                                       final boolean shuffle,
-                                       final boolean folding) {
+  @Override
+  public <T> void interleave(final List<T> pieces, Shuffle shuffle) {
 
     // https://cs.stackexchange.com/questions/332/in-place-algorithm-for-interleaving-an-array/105263#105263
 
@@ -58,22 +51,22 @@ public class InPlaceInterleaver{
     int i = 0;
     int midpt = Util.mid(numItems);
     // if the list is of odd length and doing in-shuffle, pretend its even length
-    if (!Util.isEven(numItems) && shuffle) {
+    if (!Util.isEven(numItems) && shuffle.in) {
       midpt--;
       // ignore last element unless we are folding because it would be
       // untouched in in-shuffle of odd length anyway
-      if(!folding){
+      if(!shuffle.folding){
         numItems--;
       }
     }
     // reverse lower half of list
-    if (folding) {
+    if (shuffle.folding) {
       Collections.reverse(pieces.subList(midpt, numItems));
     }
 
     while (i < numItems - 1) {
       //for an out-shuffle, the left item is at an even index
-      if (Util.isEven(i) ^ shuffle) {
+      if (Util.isEven(i) ^ shuffle.in) {
         i++;
       }
       int base = i;
@@ -102,25 +95,23 @@ public class InPlaceInterleaver{
    * Interleave two lists without extra space.
    * @param a first list
    * @param b second list
-   * @param inShuffle if true, perform an in-shuffle, otherwise an out-shuffle
-   * @param folding if true, interleave from the bottom of the second list
-   * @param <T>  type of element the list holds.
+   * @param shuffle
    */
-  public static <T> void interleave(List<T> a,
-                                    List<T> b,
-                                    boolean inShuffle,
-                                    boolean folding) {
+  @Override
+  public <T> void interleave(List<T> a,
+                         List<T> b,
+                         Shuffle shuffle) {
 
     int minSize = Math.min(a.size(), b.size());
     int i = 0;
-    if (folding) {
+    if (shuffle.folding) {
       // Rotate extra items to the back
       Util.rotateLeft(b, b.size() - minSize);
       // then reverse the part we intend to interleave.
       Collections.reverse(b.subList(0, minSize));
     }
 
-    if (!inShuffle) { // if true then don't skip the first element in List A
+    if (!shuffle.in) { // if true then don't skip the first element in List A
       i++;
     }
     int base = i;
@@ -145,16 +136,17 @@ public class InPlaceInterleaver{
         b.subList(0, minSize),
         // for odd sized lists, reverse the shuffle otherwise the midpoint
         // picked by the one-list algorithm will be off by one.
-        Util.isEven(minSize) == inShuffle,
-        false); // we already pre-folded
-
+        (Util.isEven(minSize) ? shuffle : shuffle.opposite())
+            .nonFolding()); // don't refold
   }
 
-  public static <T> void interleave(T[] arr, boolean shuffle, boolean folding){
-    interleave(arr,0,arr.length,shuffle,folding);
+  @Override
+  public <T> void interleave(T[] arr, Shuffle shuffle){
+    interleave(arr,0,arr.length,shuffle);
   }
 
-  public static <T> void interleave(T[] arr, int from, int to, boolean shuffle, boolean folding){
+  @Override
+  public <T> void interleave(T[] arr, int from, int to, Shuffle shuffle ){
     // some bounds checks
     if(from < 0 || from > to || to > arr.length){
       throw new IllegalArgumentException("Bounds check on from and to parameters failed.");
@@ -164,22 +156,22 @@ public class InPlaceInterleaver{
     int i = from;
     int midpt = from + Util.mid(numItems);
     // if the list is of odd length and doing in-shuffle, pretend its even length
-    if (!Util.isEven(numItems) && shuffle) {
+    if (!Util.isEven(numItems) && shuffle.in) {
       midpt--;
       // ignore last element unless we are folding because it would be
       // untouched in in-shuffle of odd length anyway
-      if(!folding){
+      if(!shuffle.folding){
         numItems--;
       }
     }
     // reverse lower half of list
-    if (folding) {
+    if (shuffle.folding) {
       Util.reverse(arr, midpt, numItems);
     }
 
     while (i < numItems - 1) {
       //for an out-shuffle, the left item is at an even index
-      if (Util.isEven(i) ^ shuffle) {
+      if (Util.isEven(i) ^ shuffle.in) {
         i++;
       }
       int base = i;
@@ -203,18 +195,30 @@ public class InPlaceInterleaver{
     }
   }
 
-  public static <T> void interleave(T[] a, T[] b, boolean shuffle, boolean folding){
+  @Override
+  public <T> void interleave(T[] a, T[] b, Shuffle shuffle ){
+    interleave(a,0,a.length,b,0,b.length,shuffle);
 
+  }
+
+  @Override
+  public <T> void interleave(T[] a,
+                         int fromA,
+                         int toA,
+                         T[] b,
+                         int fromB,
+                         int toB,
+                         Shuffle shuffle) {
     int minSize = Math.min(a.length, b.length);
     int i = 0;
-    if (folding) {
+    if (shuffle.folding) {
       // Rotate extra items to the back
       Util.rotateLeft(b, b.length - minSize);
       // then reverse the part we intend to interleave.
       Util.reverse(b, 0, minSize);
     }
 
-    if (!shuffle) { // if true then don't skip the first element in array A
+    if (!shuffle.in) { // if true then don't skip the first element in array A
       i++;
     }
     int base = i;
@@ -241,8 +245,8 @@ public class InPlaceInterleaver{
         minSize,
         // for odd sized lists, reverse the shuffle otherwise the midpoint
         // picked by the one-list algorithm will be off by one.
-        Util.isEven(minSize) == shuffle,
-        false); // we already pre-folded
+        (Util.isEven(minSize) ? shuffle : shuffle.opposite())
+            .nonFolding()); // don't refold
   }
 
   /*

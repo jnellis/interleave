@@ -8,9 +8,9 @@ class OneArrayInterleaverTest extends InterleaversBase {
 
   @Shared
   def interleavers = [
-      "a025480"    : InPlaceInterleaver::interleave,
-      "permutation": PermutationInterleaver::interleave,
-      "recursive"  : RecursiveInterleaver::interleave
+      "a025480"    : Interleavers.a025480::interleave,
+      "permutation": Interleavers.permutation::interleave,
+      "recursive"  : Interleavers.recursive::interleave
   ]
 
   def paramCombinations() {
@@ -18,9 +18,9 @@ class OneArrayInterleaverTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "one list out-shuffle, unexpected behavior example"() {
+  def "one array out-shuffle, unexpected behavior example"() {
     println data
-    interleavers[algo](collection, false, false)
+    interleavers[algo](collection, Shuffle.OUT)
     expect:
     collection == expected
     println data
@@ -32,9 +32,9 @@ class OneArrayInterleaverTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "one list in-shuffle, unexpected behavior example"() {
+  def "one array in-shuffle, unexpected behavior example"() {
     println data
-    interleavers[algo](collection, true, false)
+    interleavers[algo](collection, Shuffle.IN)
     expect:
     collection == expected
     println data
@@ -46,9 +46,9 @@ class OneArrayInterleaverTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "one list folding out-shuffle, unexpected behavior example"() {
+  def "one array folding out-shuffle, unexpected behavior example"() {
     println data
-    interleavers[algo](collection, false, true)
+    interleavers[algo](collection, Shuffle.OUT_FOLDING)
     expect:
     collection == expected
     println data
@@ -60,9 +60,9 @@ class OneArrayInterleaverTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "one list folding in-shuffle, unexpected behavior example"() {
+  def "one array folding in-shuffle, unexpected behavior example"() {
     println data
-    interleavers[algo](collection, true, true)
+    interleavers[algo](collection, Shuffle.IN_FOLDING)
     expect:
     collection == expected
     println data
@@ -78,7 +78,7 @@ class OneArrayInterleaverTest extends InterleaversBase {
     given:
     def arr = oddsThenEvens(max).toArray()
     expect:
-    oneCollectionTest(interleavers[algo], max, arr, false, false)
+    oneCollectionTest(interleavers[algo], max, arr, Shuffle.OUT)
     where:
     [max, algo] << paramCombinations()
     parity = getParity(max)
@@ -89,7 +89,7 @@ class OneArrayInterleaverTest extends InterleaversBase {
     given:
     def arr = evensThenOdds(max).toArray()
     expect:
-    oneCollectionTest(interleavers[algo], max, arr, true, false)
+    oneCollectionTest(interleavers[algo], max, arr, Shuffle.IN)
     where:
     [max, algo] << paramCombinations()
     parity = getParity(max)
@@ -100,7 +100,7 @@ class OneArrayInterleaverTest extends InterleaversBase {
     given:
     def arr = oddsThenFoldedEvens(max).toArray()
     expect:
-    oneCollectionTest(interleavers[algo], max, arr, false, true)
+    oneCollectionTest(interleavers[algo], max, arr, Shuffle.OUT_FOLDING)
     where:
     [max, algo] << paramCombinations()
     parity = getParity(max)
@@ -111,7 +111,7 @@ class OneArrayInterleaverTest extends InterleaversBase {
     given:
     def arr = evensThenFoldedOdds(max).toArray()
     expect:
-    oneCollectionTest(interleavers[algo], max, arr, true, true)
+    oneCollectionTest(interleavers[algo], max, arr, Shuffle.IN_FOLDING)
     where:
     [max, algo] << paramCombinations()
     parity = getParity(max)

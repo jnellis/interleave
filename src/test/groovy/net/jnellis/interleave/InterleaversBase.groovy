@@ -19,46 +19,46 @@ class InterleaversBase extends Specification {
     evens = new IntRange(2, max).step(2).asList()
   }
 
-  def oddsThenEvens(max){
+  def oddsThenEvens(max) {
     init(max)
     odds.addAll(evens)
     return odds
   }
 
-  def evensThenOdds(max){
+  def evensThenOdds(max) {
     init(max)
     evens.addAll(odds)
     return evens
   }
 
-  def oddsThenFoldedEvens(max){
+  def oddsThenFoldedEvens(max) {
     init(max)
     Collections.reverse(evens)
     odds.addAll(evens)
     return odds
   }
 
-  def evensThenFoldedOdds(max){
+  def evensThenFoldedOdds(max) {
     init(max)
     Collections.reverse(odds)
     evens.addAll(odds)
     return evens
   }
 
-  def getParity(max){
+  def getParity(max) {
     return (max % 2) == 0 ? "even" : "odd"
   }
 
-  def oneCollectionTest(interleaver, max, col, shuffle, folding) {
+  def oneCollectionTest(interleaver, max, col, shuffle) {
     if (max < 10000) println col
-    interleaver col, shuffle, folding
+    interleaver col, shuffle
     if (max < 10000) println col
     verifySequential col
   }
 
-  def twoCollectionTest(interleaver, max, cola, colb, shuffle, folding) {
+  def twoCollectionTest(interleaver, max, cola, colb, shuffle) {
     if (max < 10000) println(cola.toString() + ", " + colb.toString())
-    interleaver cola, colb, shuffle, folding
+    interleaver cola, colb, shuffle
     if (max < 10000) println(cola.toString() + ", " + colb.toString())
     verifySequential cola, colb
   }
@@ -97,53 +97,57 @@ class InterleaversBase extends Specification {
     array2 = array2 as Integer[]
     int min = Math.min(array1.length, array2.length)
     verifySequential(array1, 0, min)
-    assertEquals(array1[min-1] + 1, array2[0]) // bridging sequence test
+    assertEquals(array1[min - 1] + 1, array2[0]) // bridging sequence test
     verifySequential(array2, 0, min)
   }
 
   @Shared
   def getTypes = {
-    ["outShuffle": [
-         ["even",     [1, 2, 3, 4, "a", "b", "c", "d"],      [1, "a", 2, "b", 3, "c", 4, "d"]],
-         ["oddFront", [1, 2, 3, 4, 5, "a", "b", "c", "d"],   [1, "a", 2, "b", 3, "c", 4, "d", 5]],
-         ["oddBack",  [1, 2, 3, 4, "a", "b", "c", "d", "e"], [1, "b", 2, "c", 3, "d", 4, "e", "a"]]
+    ["outShuffle"        : [
+        ["even", [1, 2, 3, 4, "a", "b", "c", "d"], [1, "a", 2, "b", 3, "c", 4, "d"]],
+        ["oddFront", [1, 2, 3, 4, 5, "a", "b", "c", "d"], [1, "a", 2, "b", 3, "c", 4, "d", 5]],
+        ["oddBack", [1, 2, 3, 4, "a", "b", "c", "d", "e"], [1, "b", 2, "c", 3, "d", 4, "e", "a"]]
+    ],
+     "inShuffle"         : [
+         ["even", [1, 2, 3, 4, "a", "b", "c", "d"], ["a", 1, "b", 2, "c", 3, "d", 4]],
+         ["oddFront", [1, 2, 3, 4, 5, "a", "b", "c", "d"], [5, 1, "a", 2, "b", 3, "c", 4, "d"]],
+         ["oddBack", [1, 2, 3, 4, "a", "b", "c", "d", "e"], ["a", 1, "b", 2, "c", 3, "d", 4, "e"]]
      ],
-     "inShuffle" : [
-         ["even",     [1, 2, 3, 4, "a", "b", "c", "d"],      ["a", 1, "b", 2, "c", 3, "d", 4]],
-         ["oddFront", [1, 2, 3, 4, 5, "a", "b", "c", "d"],   [5, 1, "a", 2, "b", 3, "c", 4, "d"]],
-         ["oddBack",  [1, 2, 3, 4, "a", "b", "c", "d", "e"], ["a", 1, "b", 2, "c", 3, "d", 4, "e"]]
+     "foldingOutShuffle" : [
+         ["even", [1, 2, 3, 4, "d", "c", "b", "a"], [1, "a", 2, "b", 3, "c", 4, "d"]],
+         ["oddFront", [1, 2, 3, 4, 5, "d", "c", "b", "a"], [1, "a", 2, "b", 3, "c", 4, "d", 5]],
+         ["oddBack", [1, 2, 3, 4, "e", "d", "c", "b", "a"], [1, "a", 2, "b", 3, "c", 4, "d", "e"]]
      ],
-     "foldingOutShuffle": [
-         ["even",     [1, 2, 3, 4, "d", "c", "b", "a"],      [1, "a", 2, "b", 3, "c", 4, "d"]],
-         ["oddFront", [1, 2, 3, 4, 5, "d", "c", "b", "a"],   [1, "a", 2, "b", 3, "c", 4, "d", 5]],
-         ["oddBack",  [1, 2, 3, 4, "e", "d", "c", "b", "a"], [1, "a", 2, "b", 3, "c", 4, "d", "e"]]
-     ],
-     "foldingInShuffle" : [
-         ["even",     [1, 2, 3, 4, "d", "c", "b", "a"],      ["a", 1, "b", 2, "c", 3, "d", 4]],
-         ["oddFront", [1, 2, 3, 4, 5, "d", "c", "b", "a"],   ["a", 1, "b", 2, "c", 3, "d", 4, 5]],
-         ["oddBack",  [1, 2, 3, 4, "e", "d", "c", "b", "a"], ["a", 1, "b", 2, "c", 3, "d", 4, "e"]]
+     "foldingInShuffle"  : [
+         ["even", [1, 2, 3, 4, "d", "c", "b", "a"], ["a", 1, "b", 2, "c", 3, "d", 4]],
+         ["oddFront", [1, 2, 3, 4, 5, "d", "c", "b", "a"], ["a", 1, "b", 2, "c", 3, "d", 4, 5]],
+         ["oddBack", [1, 2, 3, 4, "e", "d", "c", "b", "a"], ["a", 1, "b", 2, "c", 3, "d", 4, "e"]]
      ],
 
 
-     "outShuffle2": [
-         ["even",     [1, 2, 3, 4],    ["a", "b", "c", "d"],      [1, "a", 2, "b"],    [3, "c", 4, "d"]],
-         ["oddFront", [1, 2, 3, 4, 5], ["a", "b", "c", "d"],      [1, "a", 2, "b", 5], [3, "c", 4, "d"]],
-         ["oddBack",  [1, 2, 3, 4],    ["a", "b", "c", "d", "e"], [1, "a", 2, "b"],    [3, "c", 4, "d", "e"]]
+     "outShuffle2"       : [
+         ["even", [1, 2, 3, 4], ["a", "b", "c", "d"], [1, "a", 2, "b"], [3, "c", 4, "d"]],
+         ["oddFront", [1, 2, 3, 4, 5], ["a", "b", "c", "d"], [1, "a", 2, "b", 5], [3, "c", 4, "d"]],
+         ["oddBack", [1, 2, 3, 4], ["a", "b", "c", "d", "e"], [1, "a", 2, "b"], [3, "c", 4, "d",
+                                                                                 "e"]]
      ],
-     "inShuffle2" : [
-         ["even",     [1, 2, 3, 4],    [ "a", "b", "c", "d"],     ["a", 1, "b", 2],    ["c", 3, "d", 4]],
-         ["oddFront", [1, 2, 3, 4, 5], ["a", "b", "c", "d"],      ["a", 1, "b", 2, 5], ["c", 3, "d", 4]],
-         ["oddBack",  [1, 2, 3, 4],    ["a", "b", "c", "d", "e"], ["a", 1, "b", 2],    ["c", 3, "d", 4, "e"]]
+     "inShuffle2"        : [
+         ["even", [1, 2, 3, 4], ["a", "b", "c", "d"], ["a", 1, "b", 2], ["c", 3, "d", 4]],
+         ["oddFront", [1, 2, 3, 4, 5], ["a", "b", "c", "d"], ["a", 1, "b", 2, 5], ["c", 3, "d", 4]],
+         ["oddBack", [1, 2, 3, 4], ["a", "b", "c", "d", "e"], ["a", 1, "b", 2], ["c", 3, "d", 4,
+                                                                                 "e"]]
      ],
      "foldingOutShuffle2": [
-         ["even",     [1, 2, 3, 4],    ["d", "c", "b", "a"],      [1, "a", 2, "b"],    [3, "c", 4, "d"]],
-         ["oddFront", [1, 2, 3, 4, 5], ["d", "c", "b", "a"],      [1, "a", 2, "b", 5], [3, "c", 4, "d"]],
-         ["oddBack",  [1, 2, 3, 4],    ["e", "d", "c", "b", "a"], [1, "a", 2, "b"],    [3, "c", 4, "d", "e"]]
+         ["even", [1, 2, 3, 4], ["d", "c", "b", "a"], [1, "a", 2, "b"], [3, "c", 4, "d"]],
+         ["oddFront", [1, 2, 3, 4, 5], ["d", "c", "b", "a"], [1, "a", 2, "b", 5], [3, "c", 4, "d"]],
+         ["oddBack", [1, 2, 3, 4], ["e", "d", "c", "b", "a"], [1, "a", 2, "b"], [3, "c", 4, "d",
+                                                                                 "e"]]
      ],
      "foldingInShuffle2" : [
-         ["even",     [1, 2, 3, 4],    ["d", "c", "b", "a"],      ["a", 1, "b", 2],    ["c", 3, "d", 4]],
-         ["oddFront", [1, 2, 3, 4, 5], ["d", "c", "b", "a"],      ["a", 1, "b", 2, 5], ["c", 3, "d", 4]],
-         ["oddBack",  [1, 2, 3, 4],    ["e", "d", "c", "b", "a"], ["a", 1, "b", 2],    ["c", 3, "d", 4, "e"]]
+         ["even", [1, 2, 3, 4], ["d", "c", "b", "a"], ["a", 1, "b", 2], ["c", 3, "d", 4]],
+         ["oddFront", [1, 2, 3, 4, 5], ["d", "c", "b", "a"], ["a", 1, "b", 2, 5], ["c", 3, "d", 4]],
+         ["oddBack", [1, 2, 3, 4], ["e", "d", "c", "b", "a"], ["a", 1, "b", 2], ["c", 3, "d", 4,
+                                                                                 "e"]]
      ]
     ]
   }

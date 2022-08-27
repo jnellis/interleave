@@ -15,9 +15,9 @@ class TwoArrayInterleaversTest extends InterleaversBase {
 
   @Shared
   def interleavers = [
-      "a025480": InPlaceInterleaver::interleave,
-      "permutation": PermutationInterleaver::interleave,
-      "recursive"  : RecursiveInterleaver::interleave
+      "a025480"    : Interleavers.a025480::interleave,
+      "permutation": Interleavers.permutation::interleave,
+      "recursive"  : Interleavers.recursive::interleave
   ]
 
   def paramCombinations() {
@@ -27,7 +27,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   @Unroll('#featureName[#iterationIndex] #algo #variant')
   def "two array out-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
-    interleavers[algo](collection1, collection2, false, false)
+    interleavers[algo](collection1, collection2, Shuffle.OUT)
     expect:
     println collection1 + " " + collection2
     collection1 == expected1
@@ -44,7 +44,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   @Unroll('#featureName[#iterationIndex] #algo #variant')
   def "two array in-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
-    interleavers[algo](collection1, collection2, true, false)
+    interleavers[algo](collection1, collection2, Shuffle.IN)
     expect:
     println collection1 + " " + collection2
     collection1 == expected1
@@ -61,7 +61,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   @Unroll('#featureName[#iterationIndex] #algo #variant')
   def "two array folding out-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
-    interleavers[algo](collection1, collection2, false, true)
+    interleavers[algo](collection1, collection2, Shuffle.OUT_FOLDING)
     expect:
     println collection1 + " " + collection2
     collection1 == expected1
@@ -78,7 +78,7 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   @Unroll('#featureName[#iterationIndex] #algo #variant')
   def "two array folding in-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
-    interleavers[algo](collection1, collection2, true, true)
+    interleavers[algo](collection1, collection2, Shuffle.IN_FOLDING)
     expect:
     println collection1 + " " + collection2
     collection1 == expected1
@@ -97,14 +97,14 @@ class TwoArrayInterleaversTest extends InterleaversBase {
     given:
     init(max)
     expect:
-    twoCollectionTest(interleavers[algo], max, odds.toArray(), evens.toArray(), false, false)
+    twoCollectionTest(interleavers[algo], max, odds.toArray(), evens.toArray(), Shuffle.OUT)
     if (parity === "odd") {
       init(max)
       // try it with larger list on evens side
       odds.removeLast()
       evens.add(-1)
 
-      twoCollectionTest(interleavers[algo], max, odds.toArray(), evens.toArray(), false, false)
+      twoCollectionTest(interleavers[algo], max, odds.toArray(), evens.toArray(), Shuffle.OUT)
     }
     where:
     [max, algo] << paramCombinations()
@@ -116,13 +116,13 @@ class TwoArrayInterleaversTest extends InterleaversBase {
     given:
     init(max)
     expect:
-    twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), true, false)
+    twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), Shuffle.IN)
     if (parity === "odd") {
       init(max)
       // try it with larger list on evens side
       odds.removeLast()
       evens.add(-1)
-      twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), true, false)
+      twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), Shuffle.IN)
     }
     where:
     [max, algo] << paramCombinations()
@@ -135,14 +135,14 @@ class TwoArrayInterleaversTest extends InterleaversBase {
     init(max)
     expect:
     Collections.reverse(evens)
-    twoCollectionTest(interleavers[algo], max, odds.toArray(), evens.toArray(), false, true)
+    twoCollectionTest(interleavers[algo], max, odds.toArray(), evens.toArray(), Shuffle.OUT_FOLDING)
     if (parity === "odd") {
       init(max)
       // try it with larger list on evens side
       odds.removeLast()
       evens.add(-1)
       Collections.reverse(evens)
-      twoCollectionTest(interleavers[algo], max, odds.toArray(), evens.toArray(), false, true)
+      twoCollectionTest(interleavers[algo], max, odds.toArray(), evens.toArray(), Shuffle.OUT_FOLDING)
     }
     where:
     [max, algo] << paramCombinations()
@@ -155,14 +155,14 @@ class TwoArrayInterleaversTest extends InterleaversBase {
     init(max)
     expect:
     Collections.reverse(odds)
-    twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), true, true)
+    twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), Shuffle.IN_FOLDING)
     if (parity === "odd") {
       init(max)
       // try it with larger list on evens side
       odds.removeLast()
       evens.add(-1)
       Collections.reverse(odds)
-      twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), true, true)
+      twoCollectionTest(interleavers[algo], max, evens.toArray(), odds.toArray(), Shuffle.IN_FOLDING)
     }
     where:
     [max, algo] << paramCombinations()

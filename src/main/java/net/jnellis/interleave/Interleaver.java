@@ -96,7 +96,7 @@ import java.util.RandomAccess;
  *   Ex. [1,2,3,4], [e,d,c,b,a] -> [1,a,2,b], [3,c,4,d,e]
  * </pre>
  */
-public interface Interleaver<T>{
+public interface Interleaver {
 
   /**
    * Performs interleaving of the midpoint of this list with the head of the
@@ -109,7 +109,7 @@ public interface Interleaver<T>{
    *                For performance, must implement {@link RandomAccess}
    * @param shuffle A descriptor indicating the type of interleave operation.
    */
-  void interleave(List<T> list, Shuffle shuffle);
+  <T> void interleave(List<T> list, Shuffle shuffle);
 
   /**
    * Performs interleaving of the midpoint of this array with the head of the
@@ -121,7 +121,7 @@ public interface Interleaver<T>{
    * @param array   elements to be interleaved in-place.
    * @param shuffle A descriptor indicating the type of interleave operation.
    */
-  void interleave(T[] array, Shuffle shuffle);
+  <T> void interleave(T[] array, Shuffle shuffle);
 
   /**
    * Performs interleaving of the midpoint of this array <em>section</em>
@@ -135,7 +135,7 @@ public interface Interleaver<T>{
    * @param to      ending index, exclusive
    * @param shuffle A descriptor indicating the type of interleave operation.
    */
-  void interleave(T[] array, int from, int to, Shuffle shuffle);
+  <T> void interleave(T[] array, int from, int to, Shuffle shuffle);
 
   /**
    * Performs interleaving of two lists.
@@ -149,7 +149,7 @@ public interface Interleaver<T>{
    *                For performance, must implement {@link RandomAccess}
    * @param shuffle A descriptor indicating the type of interleave operation.
    */
-  void interleave(List<T> a, List<T> b, Shuffle shuffle);
+  <T> void interleave(List<T> a, List<T> b, Shuffle shuffle);
 
   /**
    * Performs interleaving of two arrays.
@@ -161,8 +161,8 @@ public interface Interleaver<T>{
    * @param b       elements of second array to be interleaved in-place.
    * @param shuffle A descriptor indicating the type of interleave operation.
    */
-  void interleave(T[] a, T[] b, Shuffle shuffle); 
-  
+  <T> void interleave(T[] a, T[] b, Shuffle shuffle);
+
   /**
    * Performs interleaving of two array sections.
    * <p>
@@ -177,7 +177,7 @@ public interface Interleaver<T>{
    * @param toB     ending index of second array, exclusive
    * @param shuffle A descriptor indicating the type of interleave operation.
    */
-  void interleave(T[] a, int fromA, int toA,
-                  T[] b, int fromB, int toB,
-                  Shuffle shuffle);
+  <T> void interleave(T[] a, int fromA, int toA,
+                      T[] b, int fromB, int toB,
+                      Shuffle shuffle);
 }
