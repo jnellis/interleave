@@ -1,9 +1,8 @@
 package net.jnellis.interleave.benchmark;
 
-import net.jnellis.interleave.InPlaceInterleaver;
-import net.jnellis.interleave.PermutationInterleaver;
-import net.jnellis.interleave.RecursiveInterleaver;
+import net.jnellis.interleave.Interleavers;
 import net.jnellis.interleave.RotatingQueueInterleaver;
+import net.jnellis.interleave.Shuffle;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -46,89 +45,91 @@ public class InPlaceInterleaverBench {
 
   @Benchmark
   public Object[] aO25480OneArrayInShuffle() {
-    InPlaceInterleaver.interleave(arr, false, false);
+    Interleavers.a025480.interleave(arr, Shuffle.IN);
     return arr;
   }
 
   @Benchmark
   public List<Object> a025480OneListInShuffle() {
-    InPlaceInterleaver.interleave(list, false, false);
+    Interleavers.a025480.interleave(list, Shuffle.IN);
     return list;
   }
 
   @Benchmark
   public List<Object> a025480OneListOutShuffle() {
-    InPlaceInterleaver.interleave(list, true, false);
+    Interleavers.a025480.interleave(list, Shuffle.OUT);
     return list;
   }
 
   @Benchmark
   public List<Object> a025480OneListFoldingOutShuffle() {
-    InPlaceInterleaver.interleave(list, false, true);
+    Interleavers.a025480.interleave(list, Shuffle.OUT_FOLDING);
     return list;
   }
 
   @Benchmark
   public List<Object> a025480OneListFoldingInShuffle() {
-    InPlaceInterleaver.interleave(list, true, true);
+    Interleavers.a025480.interleave(list, Shuffle.IN_FOLDING);
     return list;
   }
 
   //// PermutationInterleaver benchmarks
   @Benchmark
   public List<Object> permutationOneListOutShuffle() {
-    PermutationInterleaver.interleave(list, false, false);
+    Interleavers.permutation.interleave(list, Shuffle.OUT);
     return list;
   }
 
   @Benchmark
   public List<Object> permutationOneListInShuffle() {
-    PermutationInterleaver.interleave(list, true, false);
+    Interleavers.permutation.interleave(list, Shuffle.IN);
     return list;
   }
 
   @Benchmark
   public List<Object> permutationOneListFoldingOutShuffle() {
-    PermutationInterleaver.interleave(list, false, true);
+    Interleavers.permutation.interleave(list, Shuffle.OUT_FOLDING);
     return list;
   }
 
   @Benchmark
   public List<Object> permutationOneListFoldingInShuffle() {
-    PermutationInterleaver.interleave(list, true, true);
+    Interleavers.permutation.interleave(list, Shuffle.IN_FOLDING);
     return list;
   }
 
   //// RecursiveInterleaver benchmarks
   @Benchmark
   public List<Object> recursiveOneListOutShuffle() {
-    RecursiveInterleaver.interleave(list, false, false);
+    Interleavers.recursive.interleave(list, Shuffle.OUT);
     return list;
   }
 
   // two list benches
   @Benchmark
   public List<Object> a025480TwoListInShuffle() {
-    InPlaceInterleaver.interleave(list.subList(0, max / 2),
-                                  list.subList(max / 2, list.size()),
-                                  true,
-                                  false);
+    Interleavers.a025480.interleave(
+        list.subList(0, max / 2),
+        list.subList(max / 2, list.size()),
+        Shuffle.IN);
     return list;
   }
+
   @Benchmark
   public List<Object> permutationTwoListInShuffle() {
-    PermutationInterleaver.interleave(list.subList(0, max / 2),
-                                  list.subList(max / 2, list.size()),
-                                  true,
-                                  false);
+    Interleavers.permutation.interleave(
+        list.subList(0, max / 2),
+        list.subList(max / 2, list.size()),
+        Shuffle.IN);
     return list;
   }
+
   @Benchmark
   public List<Object> recursiveTwoListInShuffle() {
-    RecursiveInterleaver.interleave(list.subList(0, max / 2),
-                                  list.subList(max / 2, list.size()),
-                                  true,
-                                  false);
+    Interleavers.recursive.interleave(
+        list.subList(0, max / 2),
+        list.subList(max / 2, list.size()),
+        Shuffle.IN);
     return list;
   }
 

@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class PermutationInterleaver implements Interleaver {
 
+  @Override
   public <T> void interleave(List<T> list, Shuffle shuffle) {
     if (!shuffle.in) { // out-shuffle
       list = list.subList(1, list.size());
@@ -18,12 +19,13 @@ public class PermutationInterleaver implements Interleaver {
     interleave(list);
   }
 
+  @Override
   public <T> void interleave(T[] array, Shuffle shuffle) {
     interleave(array, 0, array.length, shuffle);
   }
 
   @Override
-  public <T> void interleave(T[] array , int from, int to, Shuffle shuffle) {
+  public <T> void interleave(T[] array, int from, int to, Shuffle shuffle) {
     if (!shuffle.in) { // out-shuffle
       from++;
     }
@@ -102,6 +104,7 @@ public class PermutationInterleaver implements Interleaver {
     interleave(arr, from + (2 * m), from + size);
   }
 
+  @Override
   public <T> void interleave(List<T> a, List<T> b, Shuffle shuffle) {
     int minSize = Math.min(a.size(), b.size());
     if (shuffle.folding) {
@@ -118,12 +121,12 @@ public class PermutationInterleaver implements Interleaver {
     }
     if (!shuffle.in) { // out-shuffle
       a = a.subList(1, a.size());
-      b = b.subList(0, minSize - 1); 
+      b = b.subList(0, minSize - 1);
     }
     interleave(a, b);
   }
 
-  private <T> void interleave(List<T> a, List<T> b) { 
+  private <T> void interleave(List<T> a, List<T> b) {
     if (a.size() == 0) {
       interleave(b);
     } else if (a.size() + b.size() == 2) {
@@ -171,22 +174,9 @@ public class PermutationInterleaver implements Interleaver {
 
   }
 
+  @Override
   public <T> void interleave(T[] a, T[] b, Shuffle shuffle) {
-
-    int minSize = Math.min(a.length, b.length);
-    if (shuffle.folding) {
-      // rotate non-interleaved items to the back
-      Util.rotateLeft(b, b.length - minSize);
-      // reverse the rest
-      Util.reverse(b, 0, minSize);
-    }
-    int fromA = 0, fromB = 0, toa = minSize, tob = minSize;
-    if (!shuffle.in) { // out-shuffle
-      minSize--;
-      fromA = 1;
-      tob = minSize;
-    }
-    interleave(a, fromA, toa, b, fromB, tob);
+    interleave(a, 0, a.length, b, 0, b.length, shuffle);
   }
 
   @Override
@@ -197,6 +187,21 @@ public class PermutationInterleaver implements Interleaver {
                              int fromB,
                              int toB,
                              Shuffle shuffle) {
+    int minSize = Math.min(toA-fromA, toB-fromB);
+    if (shuffle.folding) {
+      // rotate non-interleaved items to the back
+      Util.rotateLeft(b, b.length - minSize);
+      // reverse the rest
+      Util.reverse(b, 0, minSize);
+    }
+    toA = minSize;
+    toB = minSize;
+    if (!shuffle.in) { // out-shuffle
+      minSize--;
+      fromA = 1;
+      toB = minSize;
+    }
+    interleave(a, fromA, toA, b, fromB, toB);
 
   }
 
