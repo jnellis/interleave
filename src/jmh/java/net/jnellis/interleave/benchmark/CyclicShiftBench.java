@@ -22,35 +22,26 @@ public class CyclicShiftBench {
   @Param({"10","1000","100000","10000000"})
   public int arrLen;
 
-  @Param({"7","3","2","1.5"})
+  @Param({"50001","1027","-3"})
   public double shiftAmt;
 
   List<Object> list;
+  Object[] array;
   int by;
   @Setup
   public void setup(){
     list = IntStream.range(0, arrLen)
                     .boxed()
                     .collect(Collectors.toCollection(ArrayList::new));
+    array = list.toArray();
     by = (int)(arrLen/shiftAmt);
   }
 
-  @Benchmark
-  public List<Object> tripleReverseMethod(){
-    Util.rotateViaTripleReverse(list, by,false);
-    return list;
-  }
 
   @Benchmark
-  public List<Object> rightCycleLeaderMethod(){
-    Util.rotateRight(list, by);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> leftCycleLeaderMethod(){
-    Util.rotateLeft(list, by);
-    return list;
+  public Object[] utilRotateArray(){
+    Util.rotate(array, by);
+    return array;
   }
 
   @Benchmark

@@ -12,9 +12,21 @@ import java.util.List;
  *
  * @see <a href="https://en.wikipedia.org/wiki/Faro_shuffle">Faro shuffle</a>
  */
-public class InPlaceInterleaver implements Interleaver{
+@SuppressWarnings("FeatureEnvy")
+public class SequenceInterleaver implements Interleaver{
 
-  public InPlaceInterleaver(){}
+  public SequenceInterleaver(){}
+
+  /**
+   * The midpoint of a length, biased away from zero if the size is odd. ex.
+   * mid(5) = 3 mid(4) = 2 mid(3) = 2 mid(2) = 1 mid(1) = 1 mid(0) = 0
+   *
+   * @param size a positive value
+   * @return midpoint of a length.
+   */
+  static int mid(int size) {return size - (size >> 1);}
+
+  static boolean isEven(int n) {return (n & 1) == 0;}
 
   /**
    * Interleaves the lower and upper halves of the <b><i>modifiable</i></b> list
@@ -49,9 +61,9 @@ public class InPlaceInterleaver implements Interleaver{
 
     int numItems = pieces.size();
     int i = 0;
-    int midpt = Util.mid(numItems);
+    int midpt = mid(numItems);
     // if the list is of odd length and doing in-shuffle, pretend its even length
-    if (!Util.isEven(numItems) && shuffle.in) {
+    if (!isEven(numItems) && shuffle.in) {
       midpt--;
       // ignore last element unless we are folding because it would be
       // untouched in in-shuffle of odd length anyway
@@ -66,7 +78,7 @@ public class InPlaceInterleaver implements Interleaver{
 
     while (i < numItems - 1) {
       //for an out-shuffle, the left item is at an even index
-      if (Util.isEven(i) ^ shuffle.in) {
+      if (isEven(i) ^ shuffle.in) {
         i++;
       }
       int base = i;
@@ -78,7 +90,7 @@ public class InPlaceInterleaver implements Interleaver{
       }
 
       //unscramble swapped items in right half
-      int swap_cnt = Util.mid(i - base);
+      int swap_cnt = mid(i - base);
       for (int j = 0; j < swap_cnt - 1; j++) {
         int k = unshuffle(j, i - base);
         if (j != k) {
@@ -106,7 +118,7 @@ public class InPlaceInterleaver implements Interleaver{
     int i = 0;
     if (shuffle.folding) {
       // Rotate extra items to the back
-      Util.rotateLeft(b, b.size() - minSize);
+      Collections.rotate(b, minSize - b.size());
       // then reverse the part we intend to interleave.
       Collections.reverse(b.subList(0, minSize));
     }
@@ -123,7 +135,7 @@ public class InPlaceInterleaver implements Interleaver{
     }
 
     // unscramble the first half of List B
-    int swap_cnt = Util.mid(i - base);
+    int swap_cnt = mid(i - base);
     for (int j = 0; j + 1 < swap_cnt; j++) {
       int k = unshuffle(j, i - base);
       if (j != k) {
@@ -136,7 +148,7 @@ public class InPlaceInterleaver implements Interleaver{
         b.subList(0, minSize),
         // for odd sized lists, reverse the shuffle otherwise the midpoint
         // picked by the one-list algorithm will be off by one.
-        (Util.isEven(minSize) ? shuffle : shuffle.opposite())
+        (isEven(minSize) ? shuffle : shuffle.opposite())
             .nonFolding()); // don't refold
   }
 
@@ -154,9 +166,9 @@ public class InPlaceInterleaver implements Interleaver{
 
     int numItems = to - from;
     int i = from;
-    int midpt = from + Util.mid(numItems);
+    int midpt = from + mid(numItems);
     // if the list is of odd length and doing in-shuffle, pretend its even length
-    if (!Util.isEven(numItems) && shuffle.in) {
+    if (!isEven(numItems) && shuffle.in) {
       midpt--;
       // ignore last element unless we are folding because it would be
       // untouched in in-shuffle of odd length anyway
@@ -171,7 +183,7 @@ public class InPlaceInterleaver implements Interleaver{
 
     while (i < numItems - 1) {
       //for an out-shuffle, the left item is at an even index
-      if (Util.isEven(i) ^ shuffle.in) {
+      if (isEven(i) ^ shuffle.in) {
         i++;
       }
       int base = i;
@@ -183,7 +195,7 @@ public class InPlaceInterleaver implements Interleaver{
       }
 
       //unscramble swapped items in right half
-      int swap_cnt = Util.mid(i - base);
+      int swap_cnt = mid(i - base);
       for (int j = 0; j < swap_cnt - 1; j++) {
         int k = unshuffle(j, i - base);
         if (j != k) {
@@ -213,7 +225,7 @@ public class InPlaceInterleaver implements Interleaver{
     int i = 0;
     if (shuffle.folding) {
       // Rotate extra items to the back
-      Util.rotateLeft(b, b.length - minSize);
+      Util.rotate(b, minSize - b.length);
       // then reverse the part we intend to interleave.
       Util.reverse(b, 0, minSize);
     }
@@ -230,7 +242,7 @@ public class InPlaceInterleaver implements Interleaver{
     }
 
     // unscramble the first half of List B
-    int swap_cnt = Util.mid(i - base);
+    int swap_cnt = mid(i - base);
     for (int j = 0; j + 1 < swap_cnt; j++) {
       int k = unshuffle(j, i - base);
       if (j != k) {
@@ -245,7 +257,7 @@ public class InPlaceInterleaver implements Interleaver{
         minSize,
         // for odd sized lists, reverse the shuffle otherwise the midpoint
         // picked by the one-list algorithm will be off by one.
-        (Util.isEven(minSize) ? shuffle : shuffle.opposite())
+        (isEven(minSize) ? shuffle : shuffle.opposite())
             .nonFolding()); // don't refold
   }
 

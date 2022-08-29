@@ -1,6 +1,5 @@
 package net.jnellis.interleave;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
@@ -52,129 +51,151 @@ public final class Util {
   }
 
   /**
-   * Modular Exponentiation: wrapper to using BigInteger's modPow method.
-   *
-   * @param a base
-   * @param b exponent
-   * @param c modulo
-   * @return remainder of (a^b) % c
-   */
-  public static long bigIntModPow(int a, int b, int c) {
-    return BigInteger.valueOf(a)
-                     .modPow(BigInteger.valueOf(b), BigInteger.valueOf(c))
-                     .longValueExact();
-  }
-
-  /**
-   * Fast Modular Exponentiation: performs (a^b) % c Note: (a^b) is an
-   * exponentiation function, not exclusive-or
-   *
-   * @param a base
-   * @param b exponent
-   * @param c modulo
-   * @return remainder of (a^b) % c
-   */
-  public static long fastmod(int a, int b, int c) {
-    long x = 1, y = a;
-    while (b > 0) {
-      if ((b & 1) == 1) {
-        x = (x * y) % c;
-      }
-      y = (y * y) % c;
-      b >>= 1;
-    }
-    return x % c;
-  }
-
-  public static boolean isOdd(int val) {
-    return (val & 1) == 1;
-  }
-
-  public static <T> void rotateRight(List<T> list, int positions) {
-    rotateViaCycleLeader(list, positions, false);
-  }
-
-  public static <T> void rotateLeft(List<T> list, int positions) {
-    rotateViaCycleLeader(list, positions, true);
-  }
-
-  public static <T> void rotateRight(T[] array, int positions) {
-    rotateViaTripleReverse(array, 0, array.length, positions, false);
-  }
-
-  public static <T> void rotateRight(T[] array,
-                                     int from,
-                                     int to,
-                                     int positions) {
-    rotateViaTripleReverse(array, from, to, positions, false);
-  }
-
-  public static <T> void rotateLeft(T[] array, int positions) {
-    rotateViaTripleReverse(array, 0, array.length, positions, true);
-  }
-
-  public static <T> void rotateLeft(T[] array,
-                                    int from,
-                                    int to,
-                                    int positions) {
-    rotateViaTripleReverse(array, from, to, positions, true);
-  }
-
-  /**
    * Rotate, in-place, across two lists. Elements at the end of the first list
    * get moved to the beginning of the second list. Elements at the end of the
    * second list get pushed to the first list.
+   * <p>
+   * Similar in behavior to {@link Collections#rotate(List, int)} wherein
+   * negative distances rotate left and positive distances rotate right.
    *
-   * @param a         first list
-   * @param b         second list
-   * @param positions number of positions to rotate
-   * @param <T>       type of element in lists
+   * @param a        first list
+   * @param b        second list
+   * @param distance distance to rotate
+   * @param <T>      type of element in lists
    */
-  static public <T> void rotateRight(List<T> a, List<T> b, int positions) {
-    int n = a.size() + b.size();
-    int m = positions % n;
-    int sets = gcd(n, m);
-    for (int i = 0; i < sets; i++) {
-      T temp = i >= a.size() ? b.get(i - a.size()) : a.get(i);
-      int j = i;
+  public static <T> void rotate(List<T> a, List<T> b, int distance) {
+    int dist = distance;
+    int aSize = a.size();
+    int size = aSize + b.size();
+    if (size == 0)
+      return;
+    dist = dist % size;
+    if (dist < 0)
+      dist += size;
+    if (dist == 0)
+      return;
+
+    int nMoved = 0;
+    for (int cycleStart = 0; nMoved != size; cycleStart++) {
+      T displaced = cycleStart >= aSize ? b.get(cycleStart - aSize)
+                                        : a.get(cycleStart);
+      int i = cycleStart;
       do {
-        j += m;
-        if (j >= n) {
-          j %= n;
+        i += dist;
+        if (i >= size)
+          i -= size;
+        if (i >= aSize) {
+          displaced = b.set(i - aSize, displaced);
+        } else {
+          displaced = a.set(i, displaced);
         }
-        temp = j >= a.size() ? b.set(j - a.size(), temp) : a.set(j, temp);
-      } while (j != i);
+        nMoved++;
+      } while (i != cycleStart);
     }
   }
 
-  static public <T> void rotate(T[] a, int froma, int toa,
-                                T[] b, int fromb, int tob,
-                                int distance) {
-    int asize = toa - froma;
-    int size = asize + (tob - fromb);
+  /**
+   * Rotate elements in an array similar to
+   * {@link Collections#rotate(List, int)}
+   *
+   * @param array    array to rotate
+   * @param distance distance to rotate
+   * @see Collections#rotate(List, int)
+   */
+  public static <T> void rotate(T[] array, int distance) {
+    rotate(array, 0, array.length, distance);
+  }
+
+  /**
+   * Rotate elements in an array similar to
+   * {@link Collections#rotate(List, int)}
+   *
+   * @param array    array to rotate
+   * @param from     starting index to rotate
+   * @param to       ending index to rotate, exclusive
+   * @param distance distance to rotate
+   * @param <T>      array element type
+   * @see Collections#rotate(List, int)
+   */
+  public static <T> void rotate(T[] array, int from, int to, int distance) {
+    int dist = distance;
+    int size = to - from;
     if (size == 0)
       return;
-    distance = distance % size;
-    if (distance < 0)
-      distance += size;
-    if (distance == 0)
+    dist = dist % size;
+    if (dist < 0)
+      dist += size;
+    if (dist == 0)
       return;
 
-    for (int cycleStart = 0, nMoved = 0; nMoved != size; cycleStart++) {
-      T displaced = cycleStart > asize ? b[fromb + cycleStart - asize]
-                                       : a[froma + cycleStart];
+    int nMoved = 0;
+    for (int cycleStart = 0; nMoved != size; cycleStart++) {
+      T displaced = array[from + cycleStart];
       int i = cycleStart;
       do {
-        i += distance;
+        i += dist;
         if (i >= size)
           i -= size;
-        if(i >= asize){
-          int idx = fromb + i - asize;
+        T temp = array[from + i];
+        array[from + i] = displaced;
+        displaced = temp;
+        nMoved++;
+      } while (i != cycleStart);
+    }
+  }
+
+  /**
+   * Rotate, in-place, across two arrays. Elements at the end of the first array
+   * get moved to the beginning of the second array. Elements at the end of the
+   * second array get pushed to the first array.
+   * <p>
+   * Similar in behavior to {@link Collections#rotate(List, int)} wherein
+   * negative distances rotate left and positive distances rotate right.
+   *
+   * @param a        First array
+   * @param fromA    start index of first array
+   * @param toA      end index of first array, exclusive
+   * @param b        Second array
+   * @param fromB    start index of second array
+   * @param toB      end index of second array, exclusive
+   * @param distance distance to rotate
+   * @param <T>      array element type
+   * @see Collections#rotate(List, int)
+   */
+  public static <T> void rotate(T[] a,
+                                int fromA,
+                                int toA,
+                                T[] b,
+                                int fromB,
+                                int toB,
+                                int distance) {
+    int dist = distance;
+    int aSize = toA - fromA;
+    int size = aSize + (toB - fromB);
+    if (size == 0)
+      return;
+    dist = dist % size;
+    if (dist < 0)
+      dist += size;
+    if (dist == 0)
+      return;
+
+    int nMoved = 0;
+    for (int cycleStart = 0; nMoved != size; cycleStart++) {
+      T displaced = cycleStart >= aSize ? b[fromB + cycleStart - aSize]
+                                        : a[fromA + cycleStart];
+      int i = cycleStart;
+      do {
+        i += dist;
+        if (i >= size)
+          i -= size;
+        if (i >= aSize) {
+          int idx = fromB + i - aSize;
           T temp = b[idx];
           b[idx] = displaced;
           displaced = temp;
-        } else{
-          int idx = froma + i;
+        } else {
+          int idx = fromA + i;
           T temp = a[idx];
           a[idx] = displaced;
           displaced = temp;
@@ -182,120 +203,6 @@ public final class Util {
         nMoved++;
       } while (i != cycleStart);
     }
-  }
-
-  static public <T> void rotateRight(T[] a, int froma, int toa,
-                                     T[] b, int fromb, int tob,
-                                     int positions) {
-    int asize = toa - froma, bsize = tob - fromb;
-    int n = asize + bsize;
-    int m = positions % n;
-    int sets = gcd(n, m);
-    for (int i = 0; i < sets; i++) {
-      T temp = i >= asize ? b[fromb + i - asize] : a[froma + i];
-      int j = i;
-      do {
-        j += m;
-        if (j >= n) {
-          j %= n;
-        }
-        if (j >= asize) {
-          int idx = fromb + j - asize;
-          T temp2 = b[idx];
-          b[idx] = temp;
-          temp = temp2;
-        } else {
-          int idx = froma + j;
-          T temp2 = a[idx];
-          a[idx] = temp;
-          temp = temp2;
-        }
-      } while (j != i);
-    }
-  }
-
-  /**
-   * Rotates the list by m positions via a cycle leader algorithm.
-   *
-   * @param list      the list to rotate
-   * @param m         number of positions to rotate right
-   * @param cycleLeft if true, rotates left instead of right
-   * @param <T>       type of list item
-   */
-  static <T> void rotateViaCycleLeader(List<T> list, int m, boolean cycleLeft) {
-    int n = list.size();
-    m = m % n; // if m is bigger than the list size, reduce redundancy
-    if (cycleLeft) {
-      m = n - m;
-    }
-    int sets = gcd(n, m);
-    for (int i = 0; i < sets; i++) {
-      T temp = list.get(i);
-      int j = i;
-      do {
-        j += m;
-        // j = (j + m) % n
-        // checking for overrun vs explicit modulus everytime seems to
-        // be faster for lower sizes of m (branch prediction perhaps.)
-        if (j >= n)
-          j %= n;
-        temp = list.set(j, temp);
-      } while (j != i);
-    }
-  }
-
-  /**
-   * Rotates right the list m positions via the triple reverse algorithm.
-   *
-   * @param list       list to rotate
-   * @param m          number of positions to rotate right
-   * @param rotateLeft rotates left if true
-   * @param <T>        type of list item
-   */
-  public static <T> void rotateViaTripleReverse(List<T> list,
-                                                int m,
-                                                boolean rotateLeft) {
-    m = m % list.size();
-    if (!rotateLeft) {
-      m = list.size() - m;
-    }
-    Collections.reverse(list.subList(0, m));
-    Collections.reverse(list.subList(m, list.size()));
-    Collections.reverse(list);
-  }
-
-  /**
-   * Rotates right the array m positions via the triple reverse algorithm.
-   *
-   * @param arr        array to rotate
-   * @param from       starting from position
-   * @param to         ending to position (exclusive)
-   * @param m          number of positions to rotate right
-   * @param rotateLeft rotates left if true
-   * @param <T>        type of array item
-   */
-  public static <T> void rotateViaTripleReverse(T[] arr,
-                                                int from,
-                                                int to,
-                                                int m,
-                                                boolean rotateLeft) {
-    int size = to - from;
-    m = m % size;
-    if (!rotateLeft) {
-      m = size - m;
-    }
-    Util.reverse(arr, from, from + m);
-    Util.reverse(arr, from + m, to);
-    Util.reverse(arr, from, to);
-  }
-
-  public static int gcd(int a, int b) {
-    while (b > 0) {
-      int c = a % b;
-      a = b;
-      b = c;
-    }
-    return a;
   }
 
   /**
@@ -313,24 +220,4 @@ public final class Util {
     return n >> (Integer.numberOfTrailingZeros(~n) + 1);
   }
 
-  /**
-   * The midpoint of a length, biased away from zero if the size is odd. ex.
-   * mid(5) = 3 mid(4) = 2 mid(3) = 2 mid(2) = 1 mid(1) = 1 mid(0) = 0
-   *
-   * @param size a positive value
-   * @return midpoint of a length.
-   */
-  static int mid(int size) {return size - (size >> 1);}
-
-  static boolean isEven(int n) {return (n & 1) == 0;}
-
-  /**
-   * Fast log base 2 for integers
-   *
-   * @param i value
-   * @return the base 2 logarithm of i
-   */
-  static int log2(int i) {
-    return i == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(i);
-  }
 }

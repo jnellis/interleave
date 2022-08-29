@@ -6,7 +6,19 @@ import java.util.List;
 /**
  * User: Joe Nellis Date: 6/5/2022 Time: 11:51 AM
  */
+@SuppressWarnings("FeatureEnvy")
 public class RecursiveInterleaver implements Interleaver {
+  /**
+   * Fast log base 2 for integers
+   *
+   * @param i value
+   * @return the base 2 logarithm of i
+   */
+  static int log2(int i) {
+    //noinspection MagicNumber
+    return i == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(i);
+  }
+
   @Override
   public <T> void interleave(List<T> list, Shuffle shuffle) {
     if (!shuffle.in) { // out-shuffle
@@ -25,11 +37,11 @@ public class RecursiveInterleaver implements Interleaver {
       list.set(0, list.set(1, list.get(0)));
     } else {
       // work only on lists whose size is a power of two.
-      int k = 1 << Util.log2(n);
+      int k = 1 << log2(n);
 
       if (n != k) { // only rotate if n is not a power of two
         // rotate the part we interleave into view
-        Util.rotateLeft(list.subList(k, k + n), n - k);
+        Collections.rotate(list.subList(k, k + n), k - n);
       }
       List<T> a = list.subList(0, k);
       List<T> b = list.subList(k, 2 * k);
@@ -67,7 +79,7 @@ public class RecursiveInterleaver implements Interleaver {
     int minSize = Math.min(a.size(), b.size());
     if (shuffle.folding) {
       // rotate non-interleaved items to the back
-      Util.rotateLeft(b, b.size() - minSize);
+      Collections.rotate(b, minSize - b.size());
       // reverse the rest
       Collections.reverse(b.subList(0, minSize));
     }
@@ -91,7 +103,7 @@ public class RecursiveInterleaver implements Interleaver {
     } else {
 
       // work only on lists whose size is a power of two.
-      int k = 1 << Util.log2(minSize);
+      int k = 1 << log2(minSize);
 
       interleave(a, b, k);
       // process the remaining part of the list
@@ -100,7 +112,7 @@ public class RecursiveInterleaver implements Interleaver {
         for (int j = 0; j < minSize - k; j++) {
           b.set(j, a.set(k + j, b.get(j)));
         }
-        Util.rotateLeft(b, minSize - k);
+        Collections.rotate(b, k - minSize);
 
         //then rotate listB and perform single list interleave
         interleave(
@@ -136,11 +148,11 @@ public class RecursiveInterleaver implements Interleaver {
       Util.swap(array, from, from + 1);
     } else {
       // work only on lists whose size is a power of two.
-      int k = 1 << Util.log2(n);
+      int k = 1 << log2(n);
 
       if (n != k) { // only rotate if n is not a power of two
         // rotate the part we interleave into view
-        Util.rotateLeft(array, from + k, from + k + n, n - k);
+        Util.rotate(array, from + k, from + k + n, k - n);
       }
       interleave(array, from,
                  array, from + k,
@@ -186,10 +198,10 @@ public class RecursiveInterleaver implements Interleaver {
                              int fromB,
                              int toB,
                              Shuffle shuffle) {
-    int minSize = Math.min(toA-fromA, toB-fromB);
+    int minSize = Math.min(toA - fromA, toB - fromB);
     if (shuffle.folding) {
       // rotate non-interleaved items to the back
-      Util.rotateLeft(b, b.length - minSize);
+      Util.rotate(b, minSize - b.length);
       // reverse the rest
       Util.reverse(b, 0, minSize);
     }
@@ -206,7 +218,7 @@ public class RecursiveInterleaver implements Interleaver {
       Util.swap(a, fromA, b, fromB);
     } else {
       // work only on lists whose size is a power of two.
-      int k = 1 << Util.log2(minSize);
+      int k = 1 << log2(minSize);
       interleave(a, fromA, b, fromB, k);
       if (minSize > k) { // if n was a power of two already then we are done.
         // The amount of final work done in b[] is larger than what is leftover
@@ -215,7 +227,7 @@ public class RecursiveInterleaver implements Interleaver {
           Util.swap(a, fromA + k + j, b, fromB + j);
         }
         // then finally rotate remainder of a[] that's in b[] into position
-        Util.rotateLeft(b, fromB, toB, minSize - k);
+        Util.rotate(b, fromB, toB, k - minSize);
         // and perform single list interleave
         interleave(b, fromB + 2 * k - minSize, toB, Shuffle.OUT);
       }

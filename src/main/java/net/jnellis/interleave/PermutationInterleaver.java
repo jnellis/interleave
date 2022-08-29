@@ -10,7 +10,7 @@ public class PermutationInterleaver implements Interleaver {
 
   @Override
   public <T> void interleave(List<T> list, Shuffle shuffle) {
-    if (!shuffle.in) { // out-shuffle
+    if (shuffle.out) { // out-shuffle
       list = list.subList(1, list.size());
     }
     if (shuffle.folding) {
@@ -26,14 +26,13 @@ public class PermutationInterleaver implements Interleaver {
 
   @Override
   public <T> void interleave(T[] array, int from, int to, Shuffle shuffle) {
-    if (!shuffle.in) { // out-shuffle
+    if (shuffle.out) { // out-shuffle
       from++;
     }
     if (shuffle.folding) {
       Util.reverse(array, (array.length + from) / 2, array.length);
     }
     interleave(array, from, to);
-
   }
 
   private <T> void interleave(List<T> list) {
@@ -49,7 +48,7 @@ public class PermutationInterleaver implements Interleaver {
     int k = (int) (Math.log(size) / Math.log(3));
     int m = (int) (Math.pow(3, k) - 1) / 2;
     // Do a right cyclic shift of A[m + 1, . . . , n + m] by a distance m
-    Util.rotateRight(list.subList(m, m + n), m);
+    Collections.rotate(list.subList(m, m + n), m);
     // For each i ∈ {0, 1, . . . , k − 1}, starting at 3i, do the cycle leader
     // algorithm for the in-shuffle permutation of order 2m
     int mod = (int) Math.pow(3, k);
@@ -82,7 +81,7 @@ public class PermutationInterleaver implements Interleaver {
     int k = (int) (Math.log(size) / Math.log(3));
     int m = (int) (Math.pow(3, k) - 1) / 2;
     // Do a right cyclic shift of A[m + 1, . . . , n + m] by a distance m
-    Util.rotateRight(arr, from + m, from + m + n, m);
+    Util.rotate(arr, from + m, from + m + n, m);
     // For each i ∈ {0, 1, . . . , k − 1}, starting at 3i, do the cycle leader
     // algorithm for the in-shuffle permutation of order 2m
     int mod = (int) Math.pow(3, k);
@@ -109,7 +108,7 @@ public class PermutationInterleaver implements Interleaver {
     int minSize = Math.min(a.size(), b.size());
     if (shuffle.folding) {
       // rotate non-interleaved items to the back
-      Util.rotateLeft(b, b.size() - minSize);
+      Collections.rotate(b, minSize - b.size());
       // reverse the rest
       Collections.reverse(b.subList(0, minSize));
     }
@@ -127,23 +126,24 @@ public class PermutationInterleaver implements Interleaver {
   }
 
   private <T> void interleave(List<T> a, List<T> b) {
-    if (a.size() == 0) {
+    int aSize = a.size(), bSize = b.size();
+    if (aSize == 0) {
       interleave(b);
-    } else if (a.size() + b.size() == 2) {
+    } else if (aSize + bSize == 2) {
       a.set(0, b.set(0, a.get(0)));
     } else {
 
       // Find a 2m = 3^k − 1 such that 3^k ≤ 2n < 3^(k+1)
-      int size = a.size() + b.size();
+      int size = aSize + bSize;
       int n = size / 2;
       int k = (int) (Math.log(size) / Math.log(3));
       int m = (int) (Math.pow(3, k) - 1) / 2;
       // Do a right cyclic shift of A[m + 1, . . . , n + m] by a distance m
-      int aEnd = Math.min(m + n, a.size());
+      int aEnd = Math.min(m + n, aSize);
       if (m > aEnd) {  // just rotate b side
-        Util.rotateRight(b.subList(m - a.size(), m + n - a.size()), m);
+        Collections.rotate(b.subList(m - aSize, m + n - aSize), m);
       } else {
-        Util.rotateRight(a.subList(m, aEnd), b.subList(0, m + n - a.size()), m);
+        Util.rotate(a.subList(m, aEnd), b.subList(0, m + n - aSize), m);
       }
       // For each i ∈ {0, 1, . . . , k − 1}, starting at 3i, do the cycle leader
       // algorithm for the in-shuffle permutation of order 2m
@@ -152,24 +152,23 @@ public class PermutationInterleaver implements Interleaver {
       for (int i = 0; i < k; i++) {
         int idx = startIdx;
         int lIdx = startIdx - 1;
-        T leader = lIdx < a.size() ? a.get(lIdx) : b.get(lIdx - a.size());
+        T leader = lIdx < aSize ? a.get(lIdx) : b.get(lIdx - aSize);
         do {
           idx <<= 1;
           if (idx >= mod)
             idx %= mod;
           int abx = idx - 1;
-          leader = abx < a.size() ? a.set(abx, leader)
-                                  : b.set(abx - a.size(), leader);
+          leader = abx < aSize ? a.set(abx, leader)
+                                  : b.set(abx - aSize, leader);
         } while (idx != startIdx);
         startIdx *= 3;
       }
       // Recursively do the in-shuffle algorithm on A[2m + 1, . . . , 2n]
-      if (a.size() <= 2 * m) {
-        interleave(b.subList(2 * m - a.size(), b.size()));
+      if (aSize <= 2 * m) {
+        interleave(b.subList(2 * m - aSize, bSize));
       } else {
-        interleave(a.subList(2 * m, a.size()), b);
-      }
-
+        interleave(a.subList(2 * m, aSize), b);
+      } 
     }
 
   }
@@ -180,17 +179,13 @@ public class PermutationInterleaver implements Interleaver {
   }
 
   @Override
-  public <T> void interleave(T[] a,
-                             int fromA,
-                             int toA,
-                             T[] b,
-                             int fromB,
-                             int toB,
+  public <T> void interleave(T[] a, int fromA, int toA,
+                             T[] b, int fromB, int toB,
                              Shuffle shuffle) {
-    int minSize = Math.min(toA-fromA, toB-fromB);
+    int minSize = Math.min(toA - fromA, toB - fromB);
     if (shuffle.folding) {
       // rotate non-interleaved items to the back
-      Util.rotateLeft(b, b.length - minSize);
+      Util.rotate(b, minSize - b.length);
       // reverse the rest
       Util.reverse(b, 0, minSize);
     }
@@ -207,25 +202,25 @@ public class PermutationInterleaver implements Interleaver {
 
   private <T> void interleave(T[] a, int fromA, int toa,
                               T[] b, int fromB, int tob) {
-    int aSize = toa - fromA, bsize = tob - fromB;
+    int aSize = toa - fromA, bSize = tob - fromB;
     if (toa - fromA == 0) {
       interleave(b, fromB, tob);
-    } else if (aSize + bsize == 2) {
+    } else if (aSize + bSize == 2) {
       Util.swap(a, fromA, b, fromB);
     } else {
 
       // Find a 2m = 3^k − 1 such that 3^k ≤ 2n < 3^(k+1)
-      int size = aSize + bsize;
+      int size = aSize + bSize;
       int n = size / 2;
       int k = (int) (Math.log(size) / Math.log(3));
       int m = (int) (Math.pow(3, k) - 1) / 2;
       // Do a right cyclic shift of A[m + 1, . . . , n + m] by a distance m
       int aEnd = Math.min(m + n, aSize);
       if (m > aEnd) {  // just rotate b side
-        Util.rotateRight(b, fromB + m - aSize, fromB + m + n - aSize, m);
+        Util.rotate(b, fromB + m - aSize, fromB + m + n - aSize, m);
       } else {
-        Util.rotateRight(a, fromA + m, fromA + aEnd,
-                         b, fromB, fromB + m + n - aSize, m);
+        Util.rotate(a, fromA + m, fromA + aEnd,
+                    b, fromB    , fromB + m + n - aSize, m);
       }
       // For each i ∈ {0, 1, . . . , k − 1}, starting at 3i, do the cycle leader
       // algorithm for the in-shuffle permutation of order 2m

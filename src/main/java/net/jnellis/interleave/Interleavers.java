@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * A suite of algorithms to perform interleaving of one or two collections,
- * in place, in memory.
+ * in place, without heap allocation.
  *
  * <pre>
  * {@code
@@ -25,7 +25,7 @@ import java.util.List;
 public final class Interleavers {
 
   public static final Interleaver permutation = new PermutationInterleaver();
-  public static final Interleaver a025480 = new InPlaceInterleaver();
+  public static final Interleaver a025480 = new SequenceInterleaver();
   public static final Interleaver recursive = new RecursiveInterleaver();
                 
   private Interleavers() {}
