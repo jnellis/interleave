@@ -69,4 +69,18 @@ class InterleaverUtilitiesTest extends Specification {
     -5  | [1, 2, 3, 4, 5, 6, 7] as Integer[] || [2, 3, 4, 5, 6]
   }
 
+  def expectedLog3 = (i) -> (int) (Math.log((double) i) / Math.log(3))
+
+  def "test ilog3"() {
+    expect:
+    int last = -1
+    for (int i = Integer.MAX_VALUE; i > 0; i -= 10000) {
+      int ilog = Util.ilog3(i)
+      if (ilog != last) {
+        println ilog
+      }
+      last = ilog
+      ilog == expectedLog3(i)
+    }
+  }
 }

@@ -7,6 +7,13 @@ import java.util.List;
  * Some static utility functions used by interleaving algorithms.
  */
 public final class Util {
+  /* Approximate value of log(2)/log(3) = 323/512 */
+  private static final int LN2_DIV_LN3_NUMERATOR = 323;
+  /* All powers of 3 (32-bit signed) */
+  private static final int[] POW3 = {1, 3, 9, 27, 81, 243, 729, 2187, 6561,
+      19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721,
+      129140163, 387420489, 1162261467};
+
   private Util() {}
 
   /**
@@ -100,6 +107,7 @@ public final class Util {
    *
    * @param array    array to rotate
    * @param distance distance to rotate
+   * @param <T>      type of array element
    * @see Collections#rotate(List, int)
    */
   public static <T> void rotate(T[] array, int distance) {
@@ -216,8 +224,41 @@ public final class Util {
    * @param n index on the left side to swap
    * @return index on the right side to swap (plus any midpoint offset)
    */
-  static int a025480(int n) {
+  public static int a025480(int n) {
     return n >> (Integer.numberOfTrailingZeros(~n) + 1);
+  }
+
+  /**
+   * Comparable to Math.pow for 3^k
+   *
+   * @param k exponent value
+   * @return 3^k
+   */
+  public static int powersOf3(int k) {
+    return POW3[k];
+  }
+
+  /**
+   * Fast log base 3 for integers
+   *
+   * @param i value
+   * @return the base 3 logarithm of i
+   */
+  public static int ilog3(int i) {
+    // https://graphics.stanford.edu/%7Eseander/bithacks.html#IntegerLog10
+    int t = ((ilog2(i) + 1) * LN2_DIV_LN3_NUMERATOR) >>> 9;
+    return (i < POW3[t]) ? t - 1 : t;
+  }
+
+  /**
+   * Fast log base 2 for integers
+   *
+   * @param i value
+   * @return the base 2 logarithm of i
+   */
+  public static int ilog2(int i) {
+    //noinspection MagicNumber
+    return i == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(i);
   }
 
 }

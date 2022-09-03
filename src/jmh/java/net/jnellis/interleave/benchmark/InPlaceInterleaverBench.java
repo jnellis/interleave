@@ -1,7 +1,6 @@
 package net.jnellis.interleave.benchmark;
 
 import net.jnellis.interleave.Interleavers;
-import net.jnellis.interleave.RotatingQueueInterleaver;
 import net.jnellis.interleave.Shuffle;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -33,14 +32,6 @@ public class InPlaceInterleaverBench {
                     .boxed()
                     .collect(Collectors.toCollection(ArrayList::new));
     arr = IntStream.range(0, max).boxed().toArray();
-  }
-
-  @Benchmark
-  public List<Object> rotatingQueueTwoListInShuffle() {
-    return RotatingQueueInterleaver.interleave(
-        list.subList(0, max / 2),
-        list.subList(max / 2, list.size()),
-        true);
   }
 
   @Benchmark

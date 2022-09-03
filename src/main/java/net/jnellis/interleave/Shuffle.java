@@ -7,27 +7,37 @@ package net.jnellis.interleave;
  * @see Interleavers
  */
 public enum Shuffle {
-	IN(true, false), OUT(false, false),
-	IN_FOLDING(true, true), OUT_FOLDING(false, true);
+  IN(true, false), OUT(false, false),
+  IN_FOLDING(true, true), OUT_FOLDING(false, true);
 
-	public final boolean folding;
-	public final boolean in;
-	public final boolean out;
+  public final boolean folding;
+  public final boolean in;
+  public final boolean out;
 
-	public Shuffle opposite(){
-	  if(folding){
-			return in ? OUT_FOLDING : IN_FOLDING;
-	  }
-		return in ? OUT : IN;
-	}
+  Shuffle(boolean inShuffle, boolean folding) {
+    in = inShuffle;
+    out = !inShuffle;
+    this.folding = folding;
+  }
 
-	public Shuffle nonFolding(){
-		return in ? IN : OUT;
-	}
+  /**
+   * Returns the opposite shuffle type but maintains whether it was folding
+   * or not.
+   *
+   * @return An in-shuffle object returns and out-shuffle object and vice-versa.
+   */
+  public Shuffle opposite() {
+    if (folding) {
+      return in ? OUT_FOLDING : IN_FOLDING;
+    }
+    return in ? OUT : IN;
+  }
 
-	Shuffle(boolean inShuffle, boolean folding) {
-		this.in = inShuffle;
-		this.out = !inShuffle;
-		this.folding = folding;
-	}
+  /**
+   * Presents the same shuffle, without folding.
+   * @return a similar shuffle object without folding.
+   */
+  public Shuffle nonFolding() {
+    return in ? IN : OUT;
+  }
 }

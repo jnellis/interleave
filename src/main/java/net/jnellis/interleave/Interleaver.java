@@ -108,6 +108,10 @@ public interface Interleaver {
    * @param list    elements to be interleaved in-place.
    *                For performance, must implement {@link RandomAccess}
    * @param shuffle A descriptor indicating the type of interleave operation.
+   * @param <T>     type of list element
+   * @throws UnsupportedOperationException if the specified list or its
+   *                                       list-iterator does not support the
+   *                                       set operation.
    */
   <T> void interleave(List<T> list, Shuffle shuffle);
 
@@ -120,8 +124,11 @@ public interface Interleaver {
    *
    * @param array   elements to be interleaved in-place.
    * @param shuffle A descriptor indicating the type of interleave operation.
+   * @param <T>     type of array element
    */
-  <T> void interleave(T[] array, Shuffle shuffle);
+  default <T> void interleave(T[] array, Shuffle shuffle) {
+    interleave(array, 0, array.length, shuffle);
+  }
 
   /**
    * Performs interleaving of the midpoint of this array <em>section</em>
@@ -134,6 +141,7 @@ public interface Interleaver {
    * @param from    starting index
    * @param to      ending index, exclusive
    * @param shuffle A descriptor indicating the type of interleave operation.
+   * @param <T>     type of array element
    */
   <T> void interleave(T[] array, int from, int to, Shuffle shuffle);
 
@@ -148,6 +156,10 @@ public interface Interleaver {
    * @param b       elements of second list to be interleaved in-place.
    *                For performance, must implement {@link RandomAccess}
    * @param shuffle A descriptor indicating the type of interleave operation.
+   * @param <T>     type of list element
+   * @throws UnsupportedOperationException if the specified list(s) or its
+   *                                       list-iterator does not support the
+   *                                       set operation.
    */
   <T> void interleave(List<T> a, List<T> b, Shuffle shuffle);
 
@@ -160,8 +172,11 @@ public interface Interleaver {
    * @param a       elements of first array to be interleaved in-place.
    * @param b       elements of second array to be interleaved in-place.
    * @param shuffle A descriptor indicating the type of interleave operation.
+   * @param <T>     type of array element
    */
-  <T> void interleave(T[] a, T[] b, Shuffle shuffle);
+  default <T> void interleave(T[] a, T[] b, Shuffle shuffle) {
+    interleave(a, 0, a.length, b, 0, b.length, shuffle);
+  }
 
   /**
    * Performs interleaving of two array sections.
@@ -176,6 +191,7 @@ public interface Interleaver {
    * @param fromB   starting index of second array
    * @param toB     ending index of second array, exclusive
    * @param shuffle A descriptor indicating the type of interleave operation.
+   * @param <T>     type of array element
    */
   <T> void interleave(T[] a, int fromA, int toA,
                       T[] b, int fromB, int toB,
