@@ -28,11 +28,11 @@ compileJava {
 
 idea {
   module {
-    downloadJavadoc = true     
+    downloadJavadoc = true
   }
 }
 
-test{
+test {
   useJUnitPlatform()
 }
 
@@ -45,28 +45,33 @@ dependencies {
 
   testImplementation platform("org.spockframework:spock-bom:2.1-groovy-3.0")
   testImplementation "org.spockframework:spock-core"
- 
+
 }
+
+javadoc {
+  options.addStringOption("Xwerror", "-Xdoclint:all")
+}
+check.dependsOn javadoc
 
 // jmhReport setting
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["permutationTwoList" ]
+  include = [".*Interleaver"]
   iterations = 10
-  warmupIterations = 10
+  warmupIterations = 5
   jmhVersion = '1.35'
   benchmarkMode = ['avgt']
   resultFormat = 'JSON'
   resultsFile = reportFile
 //  profilers=['jfr']
   fork = 2
-  timeUnit = 'us'
-  timeOnIteration = '2s'
-  warmup = '2s'
+  timeUnit = 'ns'
+  timeOnIteration = '2000ms'
+  warmup = '2000ms'
   includeTests = false
 //  jvmArgs = ['-Djmh.separateClasspathJAR']
-//  benchmarkParameters = ['maxPieceSize':[20,50,100],'BINS':[50,100]]
+//  benchmarkParameters = ['shiftAmt': [50001]]
 
 //  verbosity = 'EXTRA'
 //  help = true  // uncomment for jmh CLI help screen, then exit
@@ -80,8 +85,8 @@ jmh {
 jmhReport {
   def dateStr = new SimpleDateFormat("yy_MM_dd/HH_mm").format(new Date())
   jmhResultPath = reportFile
-  jmhReportOutput =   file("$projectDir/docs/jmh/$dateStr")
+  jmhReportOutput = file("$projectDir/docs/jmh/$dateStr")
 }
-tasks.jmhReport.doFirst{ mkdir(jmhReport.jmhReportOutput) }
+tasks.jmhReport.doFirst { mkdir(jmhReport.jmhReportOutput) }
 
 tasks.jmh.finalizedBy tasks.jmhReport

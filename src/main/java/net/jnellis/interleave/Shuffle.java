@@ -7,11 +7,35 @@ package net.jnellis.interleave;
  * @see Interleavers
  */
 public enum Shuffle {
-  IN(true, false), OUT(false, false),
-  IN_FOLDING(true, true), OUT_FOLDING(false, true);
+  /**
+   * In-shuffle
+   */
+  IN(true, false),
+  /**
+   * Out-shuffle
+   */
+  OUT(false, false),
+  /**
+   * Folding In-Shuffle
+   */
+  IN_FOLDING(true, true),
+  /**
+   * Folding Out-Shuffle
+   */
+  OUT_FOLDING(false, true);
 
+  /**
+   * If true, shuffle should be folding
+   */
   public final boolean folding;
+  /**
+   * if true, shuffle should be an In-Shuffle
+   */
   public final boolean in;
+  /**
+   * Maintained as the opposite of {@link #in}, if true, shuffle should be
+   * Out-Shuffle.
+   */
   public final boolean out;
 
   Shuffle(boolean inShuffle, boolean folding) {

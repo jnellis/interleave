@@ -7,9 +7,9 @@ class OneListInterleaverTest extends InterleaversBase {
 
   @Shared
   def interleavers = [
-      "a025480"    : Interleavers.a025480::interleave,
-      "permutation": Interleavers.permutation::interleave,
-      "recursive"  : Interleavers.recursive::interleave
+      "a025480"    : Interleavers.SEQUENCE::interleave,
+      "permutation": Interleavers.PERMUTATION::interleave,
+      "recursive"  : Interleavers.RECURSIVE::interleave
   ]
 
   def paramCombinations() {

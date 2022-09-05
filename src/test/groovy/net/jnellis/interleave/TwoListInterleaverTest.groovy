@@ -16,9 +16,9 @@ class TwoListInterleaverTest extends InterleaversBase {
 
   @Shared
   def interleavers = [
-      "a025480"    : Interleavers.a025480::interleave,
-      "permutation": Interleavers.permutation::interleave,
-      "recursive"  : Interleavers.recursive::interleave
+      "a025480"    : Interleavers.SEQUENCE::interleave,
+      "permutation": Interleavers.PERMUTATION::interleave,
+      "recursive"  : Interleavers.RECURSIVE::interleave
   ]
 
   def paramCombinations() {
@@ -26,7 +26,7 @@ class TwoListInterleaverTest extends InterleaversBase {
   }
 
   @Unroll('#featureName[#iterationIndex] #algo #variant')
-  def "two list out-shuffle, unexpected behavior example"() { 
+  def "two list out-shuffle, unexpected behavior example"() {
     println collection1 + " " + collection2
     interleavers[algo](collection1, collection2, Shuffle.OUT)
     expect:

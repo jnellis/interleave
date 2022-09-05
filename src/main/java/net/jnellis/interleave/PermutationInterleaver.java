@@ -4,9 +4,21 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * User: Joe Nellis Date: 5/16/2022 Time: 12:47 PM
+ * An implementation of
+ * <a href="https://arxiv.org/pdf/0805.1598.pdf">
+ * A Simple In-Place Algorithm for In-Shuffle</a>
+ *
+ * @see <a href="https://cs.stackexchange.com/a/400">
+ *   https://cs.stackexchange.com/a/400</a>
+ * @see Interleaver
  */
-public class PermutationInterleaver implements Interleaver {
+public final class PermutationInterleaver implements Interleaver {
+
+  /**
+   * No-arg constructor provided for use by {@link Interleavers} which creates
+   * single instances. Use {@link Interleavers#PERMUTATION}
+   */
+  PermutationInterleaver() {}
 
   private static <T> void interleave(List<T> list) {
     int size = list.size();
@@ -183,7 +195,7 @@ public class PermutationInterleaver implements Interleaver {
    * @param array array to access
    * @param index index into array
    * @param value value to replace old value
-   * @param <T> type of array element
+   * @param <T>   type of array element
    * @return old value at that index
    */
   private static <T> T set(T[] array, int index, T value) {

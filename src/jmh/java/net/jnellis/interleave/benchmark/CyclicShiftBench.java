@@ -19,34 +19,34 @@ import java.util.stream.IntStream;
 @State(Scope.Benchmark)
 public class CyclicShiftBench {
 
-  @Param({"10","1000","100000","10000000"})
+  @Param({"10", "1000", "100000", "10000000"})
   public int arrLen;
 
-  @Param({"50001","1027","-3"})
+  @Param({"50001", "1027", "-3"})
   public double shiftAmt;
 
   List<Object> list;
   Object[] array;
   int by;
+
   @Setup
-  public void setup(){
+  public void setup() {
     list = IntStream.range(0, arrLen)
                     .boxed()
                     .collect(Collectors.toCollection(ArrayList::new));
     array = list.toArray();
-    by = (int)(arrLen/shiftAmt);
+    by = (int) (arrLen / shiftAmt);
   }
 
-
   @Benchmark
-  public Object[] utilRotateArray(){
+  public Object[] utilRotateArray() {
     Util.rotate(array, by);
     return array;
   }
 
   @Benchmark
-  public List<Object> collectionsRotate(){
-    Collections.rotate(list,by);
+  public List<Object> collectionsRotate() {
+    Collections.rotate(list, by);
     return list;
   }
 }

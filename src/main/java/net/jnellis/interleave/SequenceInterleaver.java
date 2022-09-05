@@ -4,15 +4,19 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Interleaves two lists or two halves of a single list in place without
- * extra space.
- * <p>
- * The interleaving can be in-shuffle, out-shuffle, with a combination of
- * folding the bottom to the top.
+ * An implementation of an interleaver that uses a sequence generated method
+ * to place elements into position.
  *
- * @see <a href="https://en.wikipedia.org/wiki/Faro_shuffle">Faro shuffle</a>
+ * @see <a href="https://cs.stackexchange.com/a/105263">
+ *   https://cs.stackexchange.com/a/105263</a>
+ * @see Interleaver
  */
-public class SequenceInterleaver implements Interleaver {
+public final class SequenceInterleaver implements Interleaver {
+  /**
+   * No-arg constructor provided for use by {@link Interleavers} which creates
+   * single instances. Use {@link Interleavers#SEQUENCE}
+   */
+  SequenceInterleaver() {}
 
   private static boolean isEven(int n) {return (n & 1) == 0;}
 
