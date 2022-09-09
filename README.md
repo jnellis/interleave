@@ -63,15 +63,20 @@ itself or interleaving two collections across each other. Furthermore, there are
 shuffling patterns: In-Shuffle, Out-Shuffle and a folding version of both of these two shuffles.
 Folding shuffles interleave the front with the back of the collection, effectively folding the 
 collection at the midpoint. In the case of folding two collections, interleaving pulls 
-from the back of the second collection. Consult the [javadocs]() for behavior of each type 
+from the back of the second collection. Consult the 
+[javadocs](https://jnellis.github.io/interleave/javadocs) for behavior of each type 
 of shuffle. There are a few gotchas or unintuitive behaviors when trying to interleave collections
-of an un-even size or two collections with un-equal sizes, but each case is illustrated 
-in the [Interleaver]() interface.  
+of an un-even size or two collections with un-equal sizes, but each case is illustrated in the 
+[Interleaver](https://jnellis.github.io/interleave/javadocs/net/jnellis/interleave/Interleaver.html)
+interface.  
 
 Entry points into the API for a particular implementation can be directly chosen from the class
-[Interleavers](). It contains a static instance to each implementation.
+[Interleavers](https://jnellis.github.io/interleave/javadocs/net/jnellis/interleave/Interleavers.html).
+It contains a static instance to each implementation.
                                                   
     String[] namesAndCities = { "Tom", "Dick", "Harry", "New York", "Chicago", "Miami" };
     Interleaver il = Interleavers.SEQUENCE;
     il.interleave(namesAndCities, Shuffle.OUT);
     // namesAndCites is now ["Tom", "New York", "Dick", "Chicago", "Harry", "Miami"]
+
+
