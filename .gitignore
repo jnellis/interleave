@@ -2,3 +2,10 @@
 /.gradle/
 /.idea/
 /docs/
+
+# Intellij may want to turn on annotation processing for the jmh source code as it background
+# compiles. The default may put generated source code into the jmh/java/generated folder.
+# Disable in Settings: Build->Compiler->Annotation Processors
+# You can disable this background processing entirely by turning over compiling to gradle in
+# Settings: Build->Build Tools->Gradle: Set build and test to use Gradle
+/src/jmh/generated/
