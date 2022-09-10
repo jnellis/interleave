@@ -1,3 +1,5 @@
+[![Java CI with Gradle](https://github.com/jnellis/interleave/actions/workflows/gradle.yml/badge.svg?branch=master)](https://github.com/jnellis/interleave/actions/workflows/gradle.yml)
+
 # interleave
 
 ### A utility class to perform in-place interleaving of elements in a collection.
