@@ -30,5 +30,4 @@ jobs:
       with: 
         branch: javadocs
         clean: true
-        folder: ./build/docs 
-        dry-run: true
+        folder: ./build/docs  
