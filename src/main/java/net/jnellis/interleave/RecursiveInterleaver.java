@@ -53,7 +53,7 @@ public final class RecursiveInterleaver implements Interleaver {
       Util.swap(array, from, from + 1);
     } else {
       // work only on lists whose size is a power of two.
-      int k = 1 << Util.ilog2(n);
+      int k = Integer.highestOneBit(n);
 
       if (n != k) { // only rotate if n is not a power of two
         // rotate the part we interleave into view
@@ -113,7 +113,7 @@ public final class RecursiveInterleaver implements Interleaver {
       list.set(0, list.set(1, list.get(0)));
     } else {
       // work only on lists whose size is a power of two.
-      int k = 1 << Util.ilog2(n);
+      int k = Integer.highestOneBit(n);
 
       if (n != k) { // only rotate if n is not a power of two
         // rotate the part we interleave into view
@@ -168,7 +168,7 @@ public final class RecursiveInterleaver implements Interleaver {
     } else {
 
       // work only on lists whose size is a power of two.
-      int k = 1 << Util.ilog2(minSize);
+      int k = Integer.highestOneBit(minSize);
 
       interleave(a, b, k);
       // process the remaining part of the list
@@ -214,7 +214,7 @@ public final class RecursiveInterleaver implements Interleaver {
       Util.swap(a, fromA, b, fromB);
     } else {
       // work only on lists whose size is a power of two.
-      int k = 1 << Util.ilog2(minSize);
+      int k = Integer.highestOneBit(minSize);
       interleave(a, fromA, b, fromB, k);
       if (minSize > k) { // if n was a power of two already then we are done.
         // The amount of final work done in b[] is larger than what is leftover

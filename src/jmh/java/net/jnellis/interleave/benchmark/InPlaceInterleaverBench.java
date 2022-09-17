@@ -26,7 +26,7 @@ public class InPlaceInterleaverBench {
   List<Object> list;
   Object[] arr;
 
-  @Setup(Level.Iteration)
+  @Setup(Level.Trial)
   public void setup() {
     list = IntStream.range(0, max)
                     .boxed()
@@ -35,7 +35,7 @@ public class InPlaceInterleaverBench {
   }
 
   @Benchmark
-  public Object[] aO25480OneArrayInShuffle() {
+  public Object[] a025480OneArrayInShuffle() {
     Interleavers.SEQUENCE.interleave(arr, Shuffle.IN);
     return arr;
   }
@@ -123,5 +123,18 @@ public class InPlaceInterleaverBench {
         Shuffle.IN);
     return list;
   }
+
+  @Benchmark
+  public Object[] recursiveOneArrayInShuffle(){
+    Interleavers.RECURSIVE.interleave(arr, Shuffle.IN);
+    return arr;
+  }
+
+  @Benchmark
+  public Object[] permutationOneArrayInShuffle(){
+    Interleavers.PERMUTATION.interleave(arr, Shuffle.IN);
+    return arr;
+  }
+
 
 }

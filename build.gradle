@@ -57,9 +57,9 @@ check.dependsOn javadoc
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = [".*Interleaver"]
+  include = [".*OneArrayInShuffle"]
   iterations = 10
-  warmupIterations = 5
+  warmupIterations = 10
   jmhVersion = '1.35'
   benchmarkMode = ['avgt']
   resultFormat = 'JSON'
@@ -67,8 +67,8 @@ jmh {
 //  profilers=['jfr']
   fork = 2
   timeUnit = 'ns'
-  timeOnIteration = '2000ms'
-  warmup = '2000ms'
+  timeOnIteration = '2s'
+  warmup = '2s'
   includeTests = false
 //  jvmArgs = ['-Djmh.separateClasspathJAR']
 //  benchmarkParameters = ['shiftAmt': [50001]]
