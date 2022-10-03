@@ -79,7 +79,7 @@ publishing{
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["A.*Bench"]
+  include = ["ModBench"]
   iterations = 10
   warmupIterations = 10
   jmhVersion = '1.35'
