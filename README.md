@@ -81,4 +81,34 @@ It contains a static instance to each implementation.
     il.interleave(namesAndCities, Shuffle.OUT);
     // namesAndCites is now ["Tom", "New York", "Dick", "Chicago", "Harry", "Miami"]
 
+## Benchmarking
+
+This a gradlew project so to compile, build and run you should be able to run 
+`.\gradlew build`. In the `build.gradle` file there is a code block labeled `jmh`
+which contains a mapping to common jmh runtime args.
+
+    jmh {
+    include = [".*One.*InShuffle"]
+    iterations = 10
+    warmupIterations = 10 
+    timeUnit = 'ns'
+    timeOnIteration = '1s'
+    warmup = '1s' 
+    ....
+    }
+
+These are the main parameters you'll want to adjust depending on the benchmark 
+being run. `include` accepts a regex, to either a class name or a method annotated
+with `@Benchmark`. For example the above regex would match all one list or one 
+array in-shuffle (folding or not) benchmarks for all three implementations. Most 
+of the rest of these parameters are adequate for all tests. To run the benchmark
+you must run the jmh task 
+
+`.\gradlew jmh`
+
+At the completion 
+of a benchmark, a report will be made in a `docs/jmh/{date}/{time}/` which you 
+can view in a browser. There is a button in the report page that you can switch
+the data view to logarithmic scale in order to view the report results easier.
+
 
