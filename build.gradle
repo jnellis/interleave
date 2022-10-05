@@ -6,13 +6,14 @@ plugins {
   id "io.morethan.jmhreport" version "0.9.0"
   id "idea"
   id 'maven-publish'
+  id 'signing'
 }
 
 
 apply from: 'jmh.gradle'
 
 group 'net.jnellis'
-version '1.0'
+version '1.0.0'
 
 repositories {
   mavenCentral()
@@ -60,6 +61,16 @@ java{
 publishing{
   repositories{
     maven{
+      name = "OSSRH"
+      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+      credentials{
+//        username = System.getenv("MAVEN_USERNAME")
+//        password = System.getenv("MAVEN_PASSWORD")
+        username = MAVEN_USERNAME
+        password = MAVEN_PASSWORD
+      }
+    }
+    maven{
       name = "GitHubPackages"
       url = "https://maven.pkg.github.com/jnellis/interleave"
       credentials {
@@ -68,12 +79,40 @@ publishing{
       }
     }
     publications{
-      myJava(MavenPublication){
+      mavenJava(MavenPublication){
         from components.java
+        pom {
+          name = "interleave"
+          packaging = "jar"
+          description = "Interleave (faro shuffle) one collection with itself or two collections with each other."
+          url = "https://github.com/jnellis/interleave"
+          scm {
+            url = "https://github.com/jnellis/interleave.git"
+          }
+          licenses{
+            license{
+              name = "Creative Commons Zero v1.0 Universal"
+              url = "https://creativecommons.org/publicdomain/zero/1.0/"
+            }
+          }
+          developers{
+            developer{
+              id = 'jnellis'
+              name = 'Joseph Nellis'
+              email = 'dev@jnellis.net'
+            }
+          }
+
+        }
       }
     }
   }
 }
+
+signing{
+  sign publishing.publications.mavenJava
+}
+
 
 // jmhReport setting
 def reportFile = file("$projectDir/docs/jmh/report.json")
