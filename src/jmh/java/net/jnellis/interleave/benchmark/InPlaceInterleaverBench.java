@@ -96,6 +96,12 @@ public class InPlaceInterleaverBench {
     return list;
   }
 
+  @Benchmark
+  public List<Object> recursiveOneListInShuffle() {
+    Interleavers.RECURSIVE.interleave(list, Shuffle.IN);
+    return list;
+  }
+
   // two list benches
   @Benchmark
   public List<Object> a025480TwoListInShuffle() {

@@ -13,7 +13,7 @@ plugins {
 apply from: 'jmh.gradle'
 
 group 'net.jnellis'
-version '1.0.0'
+version '1.0.1'
 
 repositories {
   mavenCentral()
@@ -64,10 +64,10 @@ publishing{
       name = "OSSRH"
       url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
       credentials{
-//        username = System.getenv("MAVEN_USERNAME")
-//        password = System.getenv("MAVEN_PASSWORD")
-        username = MAVEN_USERNAME
-        password = MAVEN_PASSWORD
+        username = System.getenv("MAVEN_USERNAME")
+        password = System.getenv("MAVEN_PASSWORD")
+//        username = MAVEN_USERNAME
+//        password = MAVEN_PASSWORD
       }
     }
     maven{
@@ -118,7 +118,7 @@ signing{
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["ModBench"]
+  include = ["OneListInShuffle"]
   iterations = 10
   warmupIterations = 10
   jmhVersion = '1.35'
@@ -127,9 +127,9 @@ jmh {
   resultsFile = reportFile
 //  profilers=['jfr']
   fork = 2
-  timeUnit = 'ns'
-  timeOnIteration = '50ms'
-  warmup = '50ms'
+  timeUnit = 'us'
+  timeOnIteration = '1s'
+  warmup = '1s'
   includeTests = false
 //  jvmArgs = ['-Djmh.separateClasspathJAR']
 //  benchmarkParameters = ['shiftAmt': [50001]]

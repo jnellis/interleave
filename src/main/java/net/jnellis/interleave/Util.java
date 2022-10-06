@@ -10,7 +10,7 @@ public final class Util {
   /* Approximate value of log(2)/log(3) = 323/512 */
   private static final int LN2_DIV_LN3_NUMERATOR = 323;
   /* All powers of 3 (32-bit signed) */
-  private static final int[] POW3 = {1, 3, 9, 27, 81, 243, 729, 2187, 6561,
+  static final int[] POW3 = {1, 3, 9, 27, 81, 243, 729, 2187, 6561,
       19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721,
       129140163, 387420489, 1162261467};
 
