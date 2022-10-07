@@ -150,7 +150,8 @@ public final class PermutationInterleaver implements Interleaver {
 
       for (int k = 0; k < c.k; k++) {
         int i = Util.POW3[k] - 1;
-        T leader = i < aSize ? a.get(i) : b.get(i - aSize);
+        T leader = i < aSize ? a.get(i)
+                             : b.get(i - aSize);
         do {
           i = (((i+1) * 2) % c.mod) - 1;
           leader = i < aSize ? a.set(i , leader)
