@@ -22,13 +22,15 @@ public final class PermutationInterleaver implements Interleaver {
 
   @Override
   public <T> void interleave(List<T> list, Shuffle shuffle) {
-    if (shuffle.out) { // out-shuffle
-      list = list.subList(1, list.size());
+    if(list.size() > 1) {
+      if (shuffle.out) { // out-shuffle
+        list = list.subList(1, list.size());
+      }
+      if (shuffle.folding) {
+        Collections.reverse(list.subList(list.size() / 2, list.size()));
+      }
+      interleave(list);
     }
-    if (shuffle.folding) {
-      Collections.reverse(list.subList(list.size() / 2, list.size()));
-    }
-    interleave(list);
   }
 
   // single list in-shuffle
@@ -117,16 +119,20 @@ public final class PermutationInterleaver implements Interleaver {
   @Override
   public <T> void interleave(List<T> a, List<T> b, Shuffle shuffle) {
     int minSize = Math.min(a.size(), b.size());
-    if (shuffle.folding) {
-      // rotate non-interleaved items to the back
-      Collections.rotate(b, minSize - b.size());
-      // reverse the rest
-      Collections.reverse(b.subList(0, minSize));
-    }
-    if (shuffle.out) { // out-shuffle
-      interleave(a.subList(1, minSize), b.subList(0, minSize - 1));
-    } else{
-      interleave(a.subList(0,minSize), b.subList(0,minSize));
+    if(minSize > 0) {
+      if (shuffle.folding) {
+        // rotate non-interleaved items to the back
+        Collections.rotate(b, minSize - b.size());
+        // reverse the rest
+        Collections.reverse(b.subList(0, minSize));
+      }
+      if (shuffle.out) {
+        if (minSize > 1) {
+          interleave(a.subList(1, minSize), b.subList(0, minSize - 1));
+        }
+      } else {
+        interleave(a.subList(0, minSize), b.subList(0, minSize));
+      }
     }
   }
 
@@ -174,16 +180,18 @@ public final class PermutationInterleaver implements Interleaver {
                              T[] b, int fromB, int toB,
                              Shuffle shuffle) {
     int minSize = Math.min(toA - fromA, toB - fromB);
-    if (shuffle.folding) {
-      // rotate non-interleaved items to the back
-      Util.rotate(b, minSize - toB);
-      // reverse the rest
-      Util.reverse(b, 0, minSize);
-    }
-    if (shuffle.out) { // out-shuffle
-      interleave(a, fromA + 1, minSize, b, fromB, minSize - 1);
-    } else {
-      interleave(a, fromA, minSize, b, fromB, minSize);
+    if(minSize > 0) {
+      if (shuffle.folding) {
+        // rotate non-interleaved items to the back
+        Util.rotate(b, minSize - toB);
+        // reverse the rest
+        Util.reverse(b, 0, minSize);
+      }
+      if (shuffle.out) { // out-shuffle
+        interleave(a, fromA + 1, minSize, b, fromB, minSize - 1);
+      } else {
+        interleave(a, fromA, minSize, b, fromB, minSize);
+      }
     }
   }
 
