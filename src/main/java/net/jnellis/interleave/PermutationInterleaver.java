@@ -188,9 +188,11 @@ public final class PermutationInterleaver implements Interleaver {
         Util.reverse(b, 0, minSize);
       }
       if (shuffle.out) { // out-shuffle
-        interleave(a, fromA + 1, minSize, b, fromB, minSize - 1);
+        interleave(a, fromA + 1, fromA + minSize,
+                   b, fromB    , fromB + minSize - 1);
       } else {
-        interleave(a, fromA, minSize, b, fromB, minSize);
+        interleave(a, fromA, fromA + minSize,
+                   b, fromB, fromB + minSize);
       }
     }
   }
