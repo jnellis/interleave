@@ -25,7 +25,7 @@ compileJava {
                           "-Xdiags:verbose",
                           "-Xlint:deprecation"]
 
-  options.release = 8
+//  options.release = 8
 }
 
 idea {
@@ -36,6 +36,13 @@ idea {
 
 test {
   useJUnitPlatform()
+
+  // set heap size for the test JVM(s)
+  minHeapSize = "4G"
+  maxHeapSize = "8G"
+
+  // set JVM arguments for the test JVM(s)
+  jvmArgs '-XX:MaxMetaspaceSize=512M'
 }
 
 dependencies {
@@ -118,10 +125,10 @@ signing{
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["OneListInShuffle"]
+  include = ["shufflePrimeOneArrayInShuffle"]
   iterations = 10
   warmupIterations = 10
-  jmhVersion = '1.35'
+  jmhVersion = '1.36'
   benchmarkMode = ['avgt']
   resultFormat = 'JSON'
   resultsFile = reportFile
@@ -131,8 +138,16 @@ jmh {
   timeOnIteration = '1s'
   warmup = '1s'
   includeTests = false
-//  jvmArgs = ['-Djmh.separateClasspathJAR']
-//  benchmarkParameters = ['shiftAmt': [50001]]
+  jvmArgs = ['-XX:MaxMetaspaceSize=512M -Xms8G -Xmx8G',
+             "-server",
+             "-XX:+UnlockDiagnosticVMOptions",
+//             "-XX:+PrintCompilation",
+             "-XX:PrintAssemblyOptions=intel",
+//             "-XX:CompileCommand=print,*Util.fastmod*"
+//             "-XX:+UseLargePages",
+             "-Xlog:gc+init"
+  ]
+//  benchmarkParameters = ['ceiling': [1_000_000]]
 
 //  verbosity = 'EXTRA'
 //  help = true  // uncomment for jmh CLI help screen, then exit

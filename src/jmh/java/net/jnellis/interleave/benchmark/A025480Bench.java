@@ -3,22 +3,18 @@ package net.jnellis.interleave.benchmark;
 import net.jnellis.interleave.Util;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.CompilerControl;
-import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.OperationsPerInvocation;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 
-/**
- * User: Joe Nellis
- * Date: 9/18/2022
- * Time: 4:53 PM
- */
 @State(Scope.Benchmark)
 public class A025480Bench {
 
-  @Param({"10", "1000", "100000", "10000000"})
-  public int MAX;
+//  @Param({"10", "1000", "100000", "10000000"})
+  public static final int MAX = 100000;
 
   @Benchmark
+  @OperationsPerInvocation(MAX)
   public void trailingZeroesMethod() {
     for (int fz = 0; fz < MAX; fz++) {
       sink(fz >> (Integer.numberOfTrailingZeros(~fz) + 1));
@@ -29,6 +25,7 @@ public class A025480Bench {
   public static void sink(int val) {}
 
   @Benchmark
+  @OperationsPerInvocation(MAX)
   public void logMethod() {
     for (int fz = 0; fz < MAX; fz++) {
       sink(fz >> (Util.ilog2(~fz & (fz + 1)) + 1));
@@ -36,6 +33,7 @@ public class A025480Bench {
   }
 
   @Benchmark
+  @OperationsPerInvocation(MAX)
   public void countMethod() {
     for (int i = 0; i < MAX; i++) {
       int fz = i;

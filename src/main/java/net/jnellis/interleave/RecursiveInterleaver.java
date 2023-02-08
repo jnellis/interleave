@@ -21,7 +21,7 @@ public final class RecursiveInterleaver implements Interleaver {
    */
   RecursiveInterleaver() {}
 
-  public <T> void interleave(T[] arr, int from, int to, Shuffle shuffle) {
+  public <T> void interleave(T[] array, int from, int to, Shuffle shuffle) {
     int size = to - from;
     if (size > 1) {
       if (shuffle.out) { // out-shuffle
@@ -29,9 +29,9 @@ public final class RecursiveInterleaver implements Interleaver {
         from++; size--;
       }
       if (shuffle.folding) {
-        Util.reverse(arr, from + (size / 2), to);
+        Util.reverse(array, from + (size / 2), to);
       }
-      interleave(arr, from, to);
+      interleave(array, from, to);
     }
   }
 
@@ -54,13 +54,14 @@ public final class RecursiveInterleaver implements Interleaver {
       for (int i = 0; i < k; i++) {
         Util.swap(arr, from + i, from + k + Util.a025480(i));
       }
-      // unscramble back half of list (
+
+      // unscramble back half of list
       for (int j = 1; j <= k / 4; j <<= 1) {
-        if (j < 2) {
-          Util.swap(arr, from + k, from + k + 1);
-        } else {
-          interleave(arr, from + k, from + k + 2 * j);
-        }
+        interleave(arr, from + k, from + k + 2 * j);
+      }
+      if(k == 2){
+        Util.swap(arr, from + k , from + k + 1);
+        return;
       }
       // re-interleave the back of this front 2k section
       from += k;

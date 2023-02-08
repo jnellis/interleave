@@ -38,10 +38,29 @@ public final class Interleavers {
   /**
    * Implementation of in-place interleaving using a
    * <a href="https://cs.stackexchange.com/a/403">divide and conquer
-   * recursive algorithm</a> while utilizing both ideas of the permutation and
+   * recursive algorithm</a> while utilizing both ideas of rotation and
    * sequence algorithms above.
    */
   public static final Interleaver RECURSIVE = new RecursiveInterleaver();
+
+  /**
+   * Implementation of in-place interleaving which utilizes parts
+   * of the other algorithms; the fast part of
+   * the {@link SequenceInterleaver} to interleaver the first half,
+   * with a 'cycle leader' method similar to the {@link PermutationInterleaver}
+   * but with Josephus_2 primes single cycles, to finish the back half.
+   */
+  public static final Interleaver JOSEPHUS = new JosephusInterleaver();
+
+  /**
+   * Implementation of in-place interleaving using a cycle leader method similar
+   * to the {@link PermutationInterleaver} utilizing Shuffle Primes based on
+   * P. R. J. Asveld's <a href="https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.216.1682">
+   *   Permuting Operations on Strings
+   * —
+   * Their Permutations and Their Primes</a>}
+   */
+  public static final Interleaver SHUFFLE = new ShufflePrimeInterleaver();
 
   private Interleavers() {}
 }
