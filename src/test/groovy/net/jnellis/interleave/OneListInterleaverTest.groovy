@@ -10,7 +10,7 @@ class OneListInterleaverTest extends InterleaversBase {
       "a025480"    : Interleavers.SEQUENCE::interleave,
       "permutation": Interleavers.PERMUTATION::interleave,
       "recursive"  : Interleavers.RECURSIVE::interleave,
-//      "josephus"   : Interleavers.JOSEPHUS::interleave,
+      "josephus"   : Interleavers.JOSEPHUS::interleave,
       "shuffle"    : Interleavers.SHUFFLE::interleave
   ]
 

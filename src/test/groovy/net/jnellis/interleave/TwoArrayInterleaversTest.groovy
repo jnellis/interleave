@@ -17,7 +17,8 @@ class TwoArrayInterleaversTest extends InterleaversBase {
   def interleavers = [
       "a025480"    : Interleavers.SEQUENCE::interleave,
       "permutation": Interleavers.PERMUTATION::interleave,
-      "recursive"  : Interleavers.RECURSIVE::interleave
+      "recursive"  : Interleavers.RECURSIVE::interleave,
+      "josephus"   : Interleavers.JOSEPHUS::interleave,
   ]
 
   def paramCombinations() {
