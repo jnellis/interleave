@@ -11,6 +11,12 @@ import java.util.List;
 public
 class ShufflePrimeInterleaver implements Interleaver{
 
+  /**
+   * No-arg constructor provided for use by {@link Interleavers} which creates
+   * single instances. Use {@link Interleavers#SHUFFLE}
+   */
+  ShufflePrimeInterleaver(){}
+
   @Override
   public <T> void interleave(List<T> list, Shuffle shuffle) {
     if(list.size() > 1){
@@ -74,7 +80,7 @@ class ShufflePrimeInterleaver implements Interleaver{
   }
 
 
-  private <T> void interleave(T[] array, int from, int to) {
+  private static <T> void interleave(T[] array, int from, int to) {
     int size = to - from;
     if(size < 2) return;
     if(size < 4){
@@ -169,14 +175,54 @@ class ShufflePrimeInterleaver implements Interleaver{
   }
 
   @Override
-  public <T> void interleave(T[] a,
-                             int fromA,
-                             int toA,
-                             T[] b,
-                             int fromB,
-                             int toB,
+  public <T> void interleave(T[] a, int fromA, int toA,
+                             T[] b, int fromB,  int toB,
                              Shuffle shuffle) {
+    int minSize = Math.min(toA - fromA, toB - fromB);
+    if (minSize > 0) {
+      if (shuffle.folding) {
+        // rotate non-interleaved items to the back
+        Util.rotate(b, fromB, toB, minSize - toB);
+        // reverse the rest
+        Util.reverse(b, fromB, minSize);
+      }
+      if (shuffle.out) { // out-shuffle
+        if (minSize > 1) {
+          interleave(a, fromA + 1, fromA + minSize,
+                     b, fromB, fromB + minSize - 1);
+        }
+      } else {
+        interleave(a, fromA, fromA + minSize, b, fromB, fromB + minSize);
+      }
+    }
+  }
 
+  private static <T> void interleave(T[] a, int fromA, int toA,
+                                     T[] b, int fromB, int toB) {
+    int size = toA - fromA;
+    if (size == 1) {
+      Util.swap(a, fromA, b, fromB);
+      return;
+    }
+
+    int j2 = Util.findNextLowestJ2Prime(size);
+    int k = j2 * 2;
+
+    if( size > j2){
+      Util.rotate(a,fromA + j2,toA, b, fromB, fromB + j2, j2);
+      interleave(b, fromB + k - size, size);
+    }
+
+    int idx = 0;
+    int mod = k + 1;
+    final long u64_c = Long.divideUnsigned(-1L,mod)+1;
+    T leader =  a[fromA + idx];
+    for (int i = 0; i < k; i++) {
+//      idx = (2*idx+1) % mod;
+      idx = Util.fastmod(2*idx+1,u64_c, mod); 
+      leader = idx < size ?  set(a, fromA + idx, leader)
+                          :  set(b, fromB + idx - size, leader);
+    }
 
   }
 }
