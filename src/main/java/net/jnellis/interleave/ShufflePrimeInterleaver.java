@@ -26,7 +26,7 @@ class ShufflePrimeInterleaver implements Interleaver{
   }
 
   // single list in-shuffle
-  private <T> void interleave(List<T> list){
+  private static <T> void interleave(List<T> list){
     int size = list.size();
     if(size<2)return;
     if(size<4){
@@ -35,7 +35,7 @@ class ShufflePrimeInterleaver implements Interleaver{
     }
     int midpt = size / 2;
 
-    int k = findNextLowestShufflePrime(midpt);
+    int k = Util.findNextLowestJ2Prime(midpt) * 2;
 
     if (k != size) {
       // rotate difference out of the way
@@ -73,11 +73,6 @@ class ShufflePrimeInterleaver implements Interleaver{
     }
   }
 
-  private int findNextLowestShufflePrime(int n){
-    assert n >= 2: "lowest J2 prime is 2, n can't be less than 2.";
-    while(!Util.isJ2Prime(n--)){ /* ugh, linter, shutup */};
-    return (n+1)<<1;
-  }
 
   private <T> void interleave(T[] array, int from, int to) {
     int size = to - from;
@@ -86,12 +81,12 @@ class ShufflePrimeInterleaver implements Interleaver{
       Util.swap(array,from, from+1);
       return;
     }
-    int midpt = (size) >> 1;
+    int midpt = size / 2;
     // choose closest J2-prime less than midpt
 //    int pos = Arrays.binarySearch(Util.j2primes, midpt);
 //    // S-primes are J2-primes times two
 //    int k = ((pos < 0) ? Util.j2primes[-(pos+2)] : Util.j2primes[pos])*2;
-    int k = findNextLowestShufflePrime(midpt);
+    int k = Util.findNextLowestJ2Prime(midpt) * 2;
 
     if (k != size) {
       // rotate difference out of the way
@@ -128,7 +123,49 @@ class ShufflePrimeInterleaver implements Interleaver{
 
   @Override
   public <T> void interleave(List<T> a, List<T> b, Shuffle shuffle) {
+    int minSize = Math.min(a.size(), b.size());
+    if(minSize > 0) {
+      if (shuffle.folding) {
+        // rotate non-interleaved items to the back
+        Collections.rotate(b, minSize - b.size());
+        // reverse the rest
+        Collections.reverse(b.subList(0, minSize));
+      }
+      if (shuffle.out) {
+        if (minSize > 1) {
+          interleave(a.subList(1, minSize), b.subList(0, minSize - 1));
+        }
+      } else {
+        interleave(a.subList(0, minSize), b.subList(0, minSize));
+      }
+    }
+  }
 
+  private static <T> void interleave(List<T> a, List<T> b) {
+    int size = a.size();
+    if (size == 1) {
+      a.set(0, b.set(0, a.get(0)));
+      return;
+    }
+
+    int j2 = Util.findNextLowestJ2Prime(size);
+    int k = j2 * 2;
+
+    if( size > j2){
+      Util.rotate(a.subList(j2,size), b.subList(0, j2), j2);
+      interleave(b.subList(k-size,size));
+    }
+
+    int idx = 0;
+    int mod = k + 1;
+    final long u64_c = Long.divideUnsigned(-1L,mod)+1;
+    T leader =  a.get(idx);
+    for (int i = 0; i < k; i++) {
+//      idx = (2*idx+1) % mod;
+      idx = Util.fastmod(2*idx+1,u64_c, mod);
+      leader = idx < size ? a.set(idx, leader)
+                           : b.set(idx - size, leader);
+    }
   }
 
   @Override

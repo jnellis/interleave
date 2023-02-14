@@ -38,7 +38,7 @@ public class JosephusInterleaver implements Interleaver {
     }
     int midpt = size/2;
     // process in chunks based on J2 prime-sized cycles
-    int k = findNextLowestJ2Prime(midpt);
+    int k = Util.findNextLowestJ2Prime(midpt);
 
     // rotate elements we're not working on out of the way.
     if(k != midpt){
@@ -79,15 +79,6 @@ public class JosephusInterleaver implements Interleaver {
     }
   }
 
-  private static int findNextLowestJ2Prime(int n){
-    do{
-      if(Util.isJ2Prime(n)){
-        return n;
-      }
-    } while(n-- > 2);
-    return 0;
-  }
-
   private static <T> void interleave(T[] array, int from, int to) {
     int size = to - from;
     if(size < 2) return;
@@ -100,7 +91,7 @@ public class JosephusInterleaver implements Interleaver {
 //    int pos = Arrays.binarySearch(Util.j2primes, midpt);
 //
 //    int k = (pos < 0) ? Util.j2primes[-(pos+2)] : Util.j2primes[pos];
-    int k = findNextLowestJ2Prime(midpt);
+    int k = Util.findNextLowestJ2Prime(midpt);
 
     if (k != midpt) {
       // rotate difference out of the way
@@ -155,7 +146,7 @@ public class JosephusInterleaver implements Interleaver {
 
     int minSize = Math.min(aSize, bSize);
 
-    int k = findNextLowestJ2Prime(minSize);
+    int k = Util.findNextLowestJ2Prime(minSize);
 
     // swap upto k elements in list a
     for (int i = 0; i < k; i++) {
@@ -218,7 +209,7 @@ public class JosephusInterleaver implements Interleaver {
       return;
     }
     int minSize = Math.min(aSize, bSize);
-    int k = findNextLowestJ2Prime(minSize);
+    int k = Util.findNextLowestJ2Prime(minSize);
 
     for (int i = 0; i < k; i++) {
       Util.swap(a, fromA + i, b, fromB + Util.a025480(i));

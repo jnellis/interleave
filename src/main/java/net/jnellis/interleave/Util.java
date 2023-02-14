@@ -548,4 +548,13 @@ public final class Util {
     int t = ((ilog2(i) + 1) * LN2_DIV_LN3_NUMERATOR) >>> 9;
     return (i < POW3[t]) ? t - 1 : t;
   }
+
+  public static int findNextLowestJ2Prime(int n){
+    do{
+      if(isJ2Prime(n)){
+        return n;
+      }
+    } while(n-- > 2);
+    return 0;
+  }
 }
