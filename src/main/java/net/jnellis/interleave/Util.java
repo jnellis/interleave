@@ -75,6 +75,18 @@ public final class Util {
   }
 
   /**
+   * Swap two elements in two different lists.
+   * @param a The first list
+   * @param i index location in first list
+   * @param b The second list
+   * @param j index location in second list
+   * @param <T> type element of lists.
+   */
+  public static <T> void swap(List<T> a, int i, List<T> b, int j){
+    a.set(i, b.set(Util.a025480(i), a.get(i)));
+  }
+
+  /**
    * Rotate, in-place, across two lists. Elements at the end of the first list
    * get moved to the beginning of the second list. Elements at the end of the
    * second list get pushed to the first list.
