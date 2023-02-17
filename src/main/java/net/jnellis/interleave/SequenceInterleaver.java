@@ -11,25 +11,12 @@ import java.util.List;
  * https://cs.stackexchange.com/a/105263</a>
  * @see Interleaver
  */
-public final class SequenceInterleaver implements Interleaver {
+public final class SequenceInterleaver extends AbstractInterleaver {
   /**
    * No-arg constructor provided for use by {@link Interleavers} which creates
    * single instances. Use {@link Interleavers#SEQUENCE}
    */
   SequenceInterleaver() {}
-
-  @Override
-  public <T> void interleave(List<T> list, Shuffle shuffle) {
-    if (list.size() > 1) {
-      if (shuffle.out) {
-        list = list.subList(1, list.size());
-      }
-      if (shuffle.folding) {
-        Collections.reverse(list.subList(list.size() / 2, list.size()));
-      }
-      interleave(list);
-    }
-  }
 
   /**
    * Performs in-shuffle interleaving
@@ -37,7 +24,7 @@ public final class SequenceInterleaver implements Interleaver {
    * @param list list of elements to interleave at the midpoint
    * @param <T>  type of elements in list
    */
-  public static <T> void interleave(List<T> list) {
+  protected <T> void interleave(List<T> list) {
 
     // https://cs.stackexchange.com/questions/332/in-place-algorithm-for-interleaving-an-array/105263#105263
 
@@ -72,6 +59,11 @@ public final class SequenceInterleaver implements Interleaver {
     }
   }
 
+  /**
+   * check if {@code n} is and odd number.
+   * @param n number
+   * @return  true if odd
+   */
   private static boolean isOdd(int n) {return (n & 1) == 1;}
 
   /**
@@ -83,14 +75,19 @@ public final class SequenceInterleaver implements Interleaver {
    */
   private static int biasedMidpoint(int size) {return size - (size >> 1);}
 
-  /*
+  /**
    * When the first pass of interleaving is done up to the midpoint of the list,
    * the beginning of the list is correctly interleaved but from the midpoint to
    * 3/4 is methodically scrambled. This provides the unscrambling order to
    * get the back half of the list ready to interleave again.
-   *
-   * Why does this work? I have no idea. It is similar in the index search that
+   * <p>
+   * Why does this work? ¯\_(ツ)_/¯ It is similar in the index search that
    * happens in the divide and conquer un-scrambling of the RecursiveInterleaver.
+   *
+   * @param j starting index to find swap position
+   * @param size a cycle size
+   * @return index of swap position.
+   *
    */
   private static int unshuffle(int j, int size) {
     int i = j;
@@ -102,44 +99,7 @@ public final class SequenceInterleaver implements Interleaver {
   }
 
   @Override
-  public <T> void interleave(T[] array, int from, int to, Shuffle shuffle) {
-    int size = to - from;
-    if (size > 1) {
-      if (shuffle.out) {
-        if (size == 2) {
-          return;
-        } // too small, no change
-        from++;
-        size--;
-      }
-      if (shuffle.folding) {
-        Util.reverse(array, from + (size / 2), to);
-      }
-      interleave(array, from, to);
-    }
-  }
-
-  @Override
-  public <T> void interleave(List<T> a, List<T> b, Shuffle shuffle) {
-    int minSize = Math.min(a.size(), b.size());
-    if (minSize > 0) {
-      if (shuffle.folding) {
-        // rotate non-interleaved items to the back
-        Collections.rotate(b, minSize - b.size());
-        // reverse the rest
-        Collections.reverse(b.subList(0, minSize));
-      }
-      if (shuffle.out) {
-        if (minSize > 1) {
-          interleave(a.subList(1, minSize), b.subList(0, minSize - 1));
-        }
-      } else {
-        interleave(a.subList(0, minSize), b.subList(0, minSize));
-      }
-    }
-  }
-
-  public <T> void interleave(List<T> a, List<T> b) {
+  protected <T> void interleave(List<T> a, List<T> b) {
     int size = Math.min(a.size(), b.size());
     int i = 0;
 
@@ -164,30 +124,8 @@ public final class SequenceInterleaver implements Interleaver {
   }
 
   @Override
-  public <T> void interleave(T[] a, int fromA, int toA,
-                             T[] b, int fromB, int toB,
-                             Shuffle shuffle) {
-    int minSize = Math.min(toA - fromA, toB - fromB);
-    if (minSize > 0) {
-      if (shuffle.folding) {
-        // rotate non-interleaved items to the back
-        Util.rotate(b, fromB, toB, minSize - toB);
-        // reverse the rest
-        Util.reverse(b, fromB, minSize);
-      }
-      if (shuffle.out) {
-        if (minSize > 1) {
-          interleave(a, fromA + 1, fromA + minSize,
-                     b, fromB, fromB + minSize - 1);
-        }
-      } else {
-        interleave(a, fromA, fromA + minSize, b, fromB, fromB + minSize);
-      }
-    }
-  }
-
-  public <T> void interleave(T[] a, int fromA, int toA,
-                             T[] b, int fromB, int toB) {
+  protected <T> void interleave(T[] a, int fromA, int toA,
+                                T[] b, int fromB, int toB) {
     int size = toA - fromA;
     assert size == toB - fromB : "Intervals for both arrays must be equal.";
 
@@ -212,7 +150,8 @@ public final class SequenceInterleaver implements Interleaver {
     interleave(b, fromB + (isOdd(i) ? 1 : 0), toB);
   }
 
-  public <T> void interleave(T[] arr, int from, int to) {
+  @Override
+  protected <T> void interleave(T[] arr, int from, int to) {
     int size = to - from;
     int i = 0;
     // take zero biased midpoint and treat odd sized lists as even.
