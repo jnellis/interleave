@@ -21,7 +21,7 @@ public final class RecursiveInterleaver implements Interleaver {
    */
   RecursiveInterleaver() {}
 
-  public <T> void interleave(T[] array, int from, int to, Shuffle shuffle) {
+  public void interleave(Object[] array, int from, int to, Shuffle shuffle) {
     int size = to - from;
     if (size > 1) {
       if (shuffle.out) { // out-shuffle
@@ -35,7 +35,7 @@ public final class RecursiveInterleaver implements Interleaver {
     }
   }
 
-  private static <T> void interleave(T[] arr, int from, int to) {
+  private static void interleave(Object[] arr, int from, int to) {
     while (to - from > 1) {
       int midpt = (to - from) >> 1;
       int k = Integer.highestOneBit(midpt);
@@ -70,7 +70,7 @@ public final class RecursiveInterleaver implements Interleaver {
   }
 
   @Override
-  public <T> void interleave(List<T> list, Shuffle shuffle) {
+  public void interleave(List<?> list, Shuffle shuffle) {
     int size = list.size();
     if (size > 1) {
       if (shuffle.out) {

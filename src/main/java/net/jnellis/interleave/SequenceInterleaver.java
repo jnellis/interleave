@@ -22,9 +22,8 @@ public final class SequenceInterleaver extends AbstractInterleaver {
    * Performs in-shuffle interleaving
    *
    * @param list list of elements to interleave at the midpoint
-   * @param <T>  type of elements in list
    */
-  protected <T> void interleave(List<T> list) {
+  protected void interleave(List<?> list) {
 
     // https://cs.stackexchange.com/questions/332/in-place-algorithm-for-interleaving-an-array/105263#105263
 
@@ -151,7 +150,7 @@ public final class SequenceInterleaver extends AbstractInterleaver {
   }
 
   @Override
-  protected <T> void interleave(T[] arr, int from, int to) {
+  protected  void interleave(Object[] arr, int from, int to) {
     int size = to - from;
     int i = 0;
     // take zero biased midpoint and treat odd sized lists as even.

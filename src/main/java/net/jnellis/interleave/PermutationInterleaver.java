@@ -21,7 +21,7 @@ public final class PermutationInterleaver implements Interleaver {
   PermutationInterleaver() {}
 
   @Override
-  public <T> void interleave(List<T> list, Shuffle shuffle) {
+  public void interleave(List<?> list, Shuffle shuffle) {
     if(list.size() > 1) {
       if (shuffle.out) { // out-shuffle
         list = list.subList(1, list.size());
@@ -64,7 +64,7 @@ public final class PermutationInterleaver implements Interleaver {
   }
 
   @Override
-  public <T> void interleave(T[] array, int from, int to, Shuffle shuffle) {
+  public void interleave(Object[] array, int from, int to, Shuffle shuffle) {
     if (shuffle.out) { // out-shuffle
       from++;
     }

@@ -25,7 +25,7 @@ public abstract class AbstractInterleaver implements Interleaver {
   }
 
   @Override
-  public <T> void interleave(List<T> list, Shuffle shuffle) {
+  public  void interleave(List<?> list, Shuffle shuffle) {
     if (list.size() > 1) {
       if (shuffle.out) {
         list = list.subList(1, list.size());
@@ -38,7 +38,7 @@ public abstract class AbstractInterleaver implements Interleaver {
   }
 
   @Override
-  public <T> void interleave(T[] array, int from, int to, Shuffle shuffle) {
+  public void interleave(Object[] array, int from, int to, Shuffle shuffle) {
     rangeCheck(array,from,to);
     int size = to - from;
     if (size > 1) {
@@ -100,11 +100,11 @@ public abstract class AbstractInterleaver implements Interleaver {
     }
   }
 
-  protected abstract <T> void interleave(List<T> list);
+  protected abstract void interleave(List<?> list);
 
   protected abstract <T> void interleave(List<T> a, List<T> b);
 
-  protected abstract <T> void interleave(T[] arr, int from, int to);
+  protected abstract void interleave(Object[] arr, int from, int to);
 
   protected abstract <T> void interleave(T[] a, int fromA, int toA,
                                          T[] b, int fromB, int toB);

@@ -108,12 +108,11 @@ public interface Interleaver {
    * @param list    elements to be interleaved in-place.
    *                For performance, must implement {@link RandomAccess}
    * @param shuffle A descriptor indicating the type of interleave operation.
-   * @param <T>     type of list element
    * @throws UnsupportedOperationException if the specified list or its
    *                                       list-iterator does not support the
    *                                       set operation.
    */
-  <T> void interleave(List<T> list, Shuffle shuffle);
+   void interleave(List<?> list, Shuffle shuffle);
 
   /**
    * Performs interleaving of the midpoint of this array with the head of the
@@ -124,9 +123,8 @@ public interface Interleaver {
    *
    * @param array   elements to be interleaved in-place.
    * @param shuffle A descriptor indicating the type of interleave operation.
-   * @param <T>     type of array element
    */
-  default <T> void interleave(T[] array, Shuffle shuffle) {
+  default void interleave(Object[] array, Shuffle shuffle) {
     interleave(array, 0, array.length, shuffle);
   }
 
@@ -141,9 +139,8 @@ public interface Interleaver {
    * @param from    starting index
    * @param to      ending index, exclusive
    * @param shuffle A descriptor indicating the type of interleave operation.
-   * @param <T>     type of array element
    */
-  <T> void interleave(T[] array, int from, int to, Shuffle shuffle);
+   void interleave(Object[] array, int from, int to, Shuffle shuffle);
 
   /**
    * Performs interleaving of two lists.
@@ -173,6 +170,16 @@ public interface Interleaver {
    * @param b       elements of second array to be interleaved in-place.
    * @param shuffle A descriptor indicating the type of interleave operation.
    * @param <T>     type of array element
+   * @throws ArrayStoreException if an element in the {@code a} array could not
+   * be stored in the {@code b} array because of a type mismatch. If you require
+   * compile-time protection against such mistakes then an alternative is to
+   * add a type literal.
+   * For example: <pre>{@code
+   * Integer[] a = new Integer[]{1,3,5,7};
+   * String[] b = new String[]{"a", "b", "c", "d"};
+   * interleaver.interleave(a,b,Shuffle.OUT); // runtime ArrayStoreException
+   * interleaver.<Integer>interleave(a,b,Shuffle.OUT); // compile-time error}
+   * </pre>
    */
   default <T> void interleave(T[] a, T[] b, Shuffle shuffle) {
     interleave(a, 0, a.length, b, 0, b.length, shuffle);
@@ -192,6 +199,16 @@ public interface Interleaver {
    * @param toB     ending index of second array, exclusive
    * @param shuffle A descriptor indicating the type of interleave operation.
    * @param <T>     type of array element
+   * @throws ArrayStoreException if an element in the {@code a} array could not
+   * be stored in the {@code b} array because of a type mismatch. If you require
+   * compile-time protection against such mistakes then an alternative is to
+   * add a type literal.
+   * For example: <pre>{@code
+   * Integer[] a = new Integer[]{1,3,5,7};
+   * String[] b = new String[]{"a", "b", "c", "d"};
+   * interleaver.interleave(a,b,Shuffle.OUT); // runtime ArrayStoreException
+   * interleaver.<Integer>interleave(a,b,Shuffle.OUT); // compile-time error}
+   * </pre>
    */
   <T> void interleave(T[] a, int fromA, int toA,
                       T[] b, int fromB, int toB,

@@ -18,7 +18,7 @@ class ShufflePrimeInterleaver implements Interleaver{
   ShufflePrimeInterleaver(){}
 
   @Override
-  public <T> void interleave(List<T> list, Shuffle shuffle) {
+  public void interleave(List<?> list, Shuffle shuffle) {
     if(list.size() > 1){
       if(shuffle.out){
         list = list.subList(1,list.size());
@@ -62,7 +62,7 @@ class ShufflePrimeInterleaver implements Interleaver{
   }
 
   @Override
-  public <T> void interleave(T[] array, int from, int to, Shuffle shuffle) {
+  public void interleave(Object[] array, int from, int to, Shuffle shuffle) {
     int size = to - from;
     if (size > 1) {
       if (shuffle.out) { // out-shuffle
