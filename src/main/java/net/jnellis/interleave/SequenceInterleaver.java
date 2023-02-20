@@ -99,12 +99,13 @@ public final class SequenceInterleaver extends AbstractInterleaver {
 
   @Override
   protected <T> void interleave(List<T> a, List<T> b) {
-    int size = Math.min(a.size(), b.size());
+    assert a.size() == b.size(): "lists should be equal sizes";
+    int size = a.size();
     int i = 0;
 
     // swap all of List A
     for (; i < size; i++) {
-      Util.swap(a,i, b, Util.a025480(i));
+      Util.swap(a, i, b, Util.a025480(i));
     }
 
     // unscramble the first half of List B
@@ -126,6 +127,7 @@ public final class SequenceInterleaver extends AbstractInterleaver {
   protected <T> void interleave(T[] a, int fromA, int toA,
                                 T[] b, int fromB, int toB) {
     int size = toA - fromA;
+    assert size != 0: "Intervals for arrays shouldn't be zero length.";
     assert size == toB - fromB : "Intervals for both arrays must be equal.";
 
     // shuffle the entire array A section
@@ -150,7 +152,7 @@ public final class SequenceInterleaver extends AbstractInterleaver {
   }
 
   @Override
-  protected  void interleave(Object[] arr, int from, int to) {
+  protected void interleave(Object[] array, int from, int to) {
     int size = to - from;
     int i = 0;
     // take zero biased midpoint and treat odd sized lists as even.
@@ -165,7 +167,7 @@ public final class SequenceInterleaver extends AbstractInterleaver {
 
       // shuffle first half of list
       for (; i < midpt; i++) {
-        Util.swap(arr, from + i, from + midpt + Util.a025480(i - base));
+        Util.swap(array, from + i, from + midpt + Util.a025480(i - base));
       }
 
       // take odd length biased midpoint for swap count
@@ -174,7 +176,7 @@ public final class SequenceInterleaver extends AbstractInterleaver {
       for (int j = 0; j < swap_cnt - 1; j++) {
         int k = unshuffle(j, i - base);
         if (j != k) {
-          Util.swap(arr, from + midpt + j, from + midpt + k);
+          Util.swap(array, from + midpt + j, from + midpt + k);
         }
       }
       // push up the new midpoint to work on the remaining half of the list
