@@ -2,6 +2,8 @@ package net.jnellis.interleave;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * An implementation of
@@ -12,7 +14,7 @@ import java.util.List;
  * https://cs.stackexchange.com/a/400</a>
  * @see Interleaver
  */
-public final class PermutationInterleaver implements Interleaver {
+public final class PermutationInterleaver extends AbstractInterleaver {
 
   /**
    * No-arg constructor provided for use by {@link Interleavers} which creates
@@ -20,80 +22,72 @@ public final class PermutationInterleaver implements Interleaver {
    */
   PermutationInterleaver() {}
 
-  @Override
-  public void interleave(List<?> list, Shuffle shuffle) {
-    if(list.size() > 1) {
-      if (shuffle.out) { // out-shuffle
-        list = list.subList(1, list.size());
-      }
-      if (shuffle.folding) {
-        Collections.reverse(list.subList(list.size() / 2, list.size()));
-      }
-      interleave(list);
-    }
-  }
-
-  // single list in-shuffle
-  private static <T> void interleave(List<T> list) {
-    while (true) {
+  @SuppressWarnings({"rawtypes","unchecked"})
+  protected void interleave(List<?> list) {
+    while (list.size() > 1) {
       final int size = list.size();
-      if (size <= 2) { // bail out when size is 2 or less
-        if (size == 2) { // if two elements left, swap them on the way out.
-          Collections.swap(list, 0, 1);
-        }
-        return;
+      if (size < 4) {
+        Collections.swap(list, 0, 1);
+        break;
       }
 
-      final Constants c = new Constants(size);
-      // rotate the correct 2nd m amount of elements into position to be swapped.
-      Collections.rotate(list.subList(c.m, c.m + c.n), c.m);
+      final Constants c = Constants.from(size);
 
-      // For each i ∈ {0, 1, . . . , k − 1}, starting at 3i, do the cycle leader
+      if (c.m != c.n) { // when size is not an exact power of 3
+        // rotate the 2nd half of m elements into position to be swapped. 
+        Collections.rotate(list.subList(c.m, c.m + c.n), c.m);
+        // a concurrent list implementation would allow forking the remainder here
+      }
+      // For each i ∈ {0, 1, . . . , k − 1}, starting at 3^i, do the cycle leader
       // algorithm for the in-shuffle permutation of order 2m elements
-      for (int k = 0; k < c.k; k++) {
-        int i = Util.POW3[k] - 1;
-        T leader = list.get(i);
-        do {
-          i = (((i+1) * 2) % c.mod) - 1;
-          leader = list.set(i, leader);
-        } while (i != Util.POW3[k] - 1);
+      final List l = list;
+      for (int i = 0; i < c.k; i++) {
+        cycleLeader(i, c.mod, l::get, l::set);
       }
       // shorten the list to work on remaining elements.
       list = list.subList(2 * c.m, size);
     }
   }
 
-  @Override
-  public void interleave(Object[] array, int from, int to, Shuffle shuffle) {
-    if (shuffle.out) { // out-shuffle
-      from++;
-    }
-    if (shuffle.folding) {
-      Util.reverse(array, from + (to - from) / 2, to);
-    }
-    interleave(array, from, to);
+  /*
+   * Cycle leader for lists using Lemire fastmod. Using lambdas turns out to
+   * be faster than not, so said jmh.
+   */
+  private static <T> void cycleLeader(final int k, final int mod,
+                                      final Function<Integer,T> getter,
+                                      final BiFunction<Integer,T,T> setter ){
+    final long u64c = Long.divideUnsigned(-1L, mod) + 1L;
+    final int startIdx = Util.POW3[k];
+    int i = startIdx;
+    T leader = getter.apply(i - 1);
+    do {
+      // i = ((i * 2) % c.mod) ; // slow mod for history sake
+      i = Util.fastmod(i * 2, u64c, mod);
+      leader = setter.apply(i - 1, leader);
+    } while (i != startIdx);
   }
 
-  private static <T> void interleave(T[] arr, int from, int to) {
-    while (true) {
-      int size = to - from;
-      if (size <= 2) {
-        if (size == 2) {
-          Util.swap(arr, from, to - 1);
-        }
-        return;
+
+  protected void interleave(final Object[] array, int from, final int to) {
+    while (to - from > 1) {
+      final int size = to - from;
+      if (size < 4) {
+        Util.swap(array, from, from + 1);
+        break;
       }
 
-      final Constants c = new Constants(size);
-      Util.rotate(arr, from + c.m, from + c.m + c.n, c.m);
+      final Constants c = Constants.from(size);
+      if (c.m != c.n) {
+        Util.rotate(array, from + c.m, from + c.m + c.n, c.m);
+      }
 
-      for (int k = 0; k < c.k; k++) {
-        int i = Util.POW3[k] - 1;
-        T leader = arr[from + i ];
-        do {
-          i = (((i+1) * 2) % c.mod) - 1;
-          leader = set(arr, from + i , leader);
-        } while (i != Util.POW3[k] - 1);
+      int _from = from;
+      Function<Integer, Object> getter = (i) -> array[_from + i];
+      BiFunction<Integer, Object, Object> setter =
+          (i, obj) -> set(array, _from + i, obj);
+
+      for (int i = 0; i < c.k; i++) {
+        cycleLeader(i, c.mod, getter, setter);
       }
 
       from += (2 * c.m);
@@ -116,123 +110,85 @@ public final class PermutationInterleaver implements Interleaver {
     return oldValue;
   }
 
-  @Override
-  public <T> void interleave(List<T> a, List<T> b, Shuffle shuffle) {
-    int minSize = Math.min(a.size(), b.size());
-    if(minSize > 0) {
-      if (shuffle.folding) {
-        // rotate non-interleaved items to the back
-        Collections.rotate(b, minSize - b.size());
-        // reverse the rest
-        Collections.reverse(b.subList(0, minSize));
-      }
-      if (shuffle.out) {
-        if (minSize > 1) {
-          interleave(a.subList(1, minSize), b.subList(0, minSize - 1));
-        }
-      } else {
-        interleave(a.subList(0, minSize), b.subList(0, minSize));
-      }
-    }
-  }
-
-  private static <T> void interleave(List<T> a, List<T> b) {
+  protected <T> void interleave(List<T> a, final List<T> b) {
+    assert !a.isEmpty() : "Lists should not be empty.";
+    assert a.size() == b.size(): "Lists should be equal sizes at start.";
     while (true) {
       int aSize = a.size(), bSize = b.size();
-      if (aSize == 0) {
-        interleave(b);
-        return;
-      } else if (aSize + bSize == 2) {
+      if (aSize + bSize < 4) {
         a.set(0, b.set(0, a.get(0)));
-        return;
+        break;
       }
 
-      Constants c = new Constants(aSize + bSize);
-      if (c.m > aSize) {  // just rotate b side
-        Collections.rotate(b.subList(c.m - aSize, c.m + c.n - aSize), c.m);
-      } else {
-        Util.rotate(a.subList(c.m, aSize), b.subList(0, c.m + c.n - aSize), c.m);
+      final Constants c = Constants.from(aSize + bSize);
+      if (c.m != c.n) {
+        if (c.m > aSize) {  // just rotate b side
+          Collections.rotate(b.subList(c.m - aSize, c.m + c.n - aSize), c.m);
+        } else {
+          Util.rotate(a.subList(c.m, aSize), b.subList(0, c.m + c.n - aSize), c.m);
+        }
       }
+
+      List<T> _a = a;
+      Function<Integer,T> getter = (i)-> i < aSize ? _a.get(i)
+                                                   : b.get(i-aSize);
+      BiFunction<Integer,T,T> setter = (i,t)-> i < aSize ? _a.set(i,t)
+                                                         : b.set(i - aSize, t);
 
       for (int k = 0; k < c.k; k++) {
-        int i = Util.POW3[k] - 1;
-        T leader = i < aSize ? a.get(i)
-                             : b.get(i - aSize);
-        do {
-          i = (((i+1) * 2) % c.mod) - 1;
-          leader = i < aSize ? a.set(i , leader)
-                             : b.set(i - aSize, leader);
-        } while (i != Util.POW3[k] - 1);
+        cycleLeader(k,c.mod,getter,setter);
       }
+
       // adjust a & b to account for 2*m elements we just moved around
-      if (aSize <= 2 * c.m) {
-        a = Collections.emptyList();
-        b = b.subList(2 * c.m - aSize, bSize);
-      } else {
+      if (aSize > 2 * c.m) {
         a = a.subList(2 * c.m, aSize);
-      }
-    }
-
-  }
-
-  @Override
-  public <T> void interleave(T[] a, int fromA, int toA,
-                             T[] b, int fromB, int toB,
-                             Shuffle shuffle) {
-    int minSize = Math.min(toA - fromA, toB - fromB);
-    if(minSize > 0) {
-      if (shuffle.folding) {
-        // rotate non-interleaved items to the back
-        Util.rotate(b, minSize - toB);
-        // reverse the rest
-        Util.reverse(b, 0, minSize);
-      }
-      if (shuffle.out) { // out-shuffle
-        interleave(a, fromA + 1, fromA + minSize,
-                   b, fromB    , fromB + minSize - 1);
       } else {
-        interleave(a, fromA, fromA + minSize,
-                   b, fromB, fromB + minSize);
+        // no more a left, just work on b.
+        interleave( b.subList(2 * c.m - aSize, bSize));
+        break;
       }
     }
   }
 
-  private static <T> void interleave(T[] a, int fromA, int toA,
-                                     T[] b, int fromB, int toB) {
+  protected <T> void interleave(final T[] a, int fromA, final int toA,
+                                final T[] b, final int fromB, final int toB) {
+    assert toA - fromA != 0 : "Lists should not be empty.";
+    assert toA - fromA == toB - fromB: "Lists should be equal sizes at start.";
     while (true) {
       int aSize = toA - fromA, bSize = toB - fromB;
-      if (aSize == 0) {
-        interleave(b, fromB, toB);
-        return;
-      } else if (aSize + bSize == 2) {
+      if (aSize + bSize < 4) {
         Util.swap(a, fromA, b, fromB);
-        return;
+        break;
       }
 
-      Constants c = new Constants(aSize + bSize);
-      final int _tob = fromB + c.m + c.n - aSize;
-      if (c.m > aSize) {  // just rotate b side
-        Util.rotate(b, fromB + c.m - aSize, _tob, c.m);
-      } else {
-        Util.rotate(a, fromA + c.m, toA, b, fromB, _tob, c.m);
+      Constants c = Constants.from(aSize + bSize);
+      if(c.m != c.n) {
+        final int _tob = fromB + c.m + c.n - aSize;
+        if (c.m > aSize) {  // just rotate b side
+          Util.rotate(b, fromB + c.m - aSize, _tob, c.m);
+        } else {
+          Util.rotate(a, fromA + c.m, toA, b, fromB, _tob, c.m);
+        }
       }
+
+      int _fromA = fromA;
+      Function<Integer,T> getter = (i) -> i < aSize ? a[_fromA + i]
+                                                    : b[fromB + i - aSize];
+      BiFunction<Integer,T,T> setter =
+          (i, obj) -> i < aSize ? set(a, _fromA + i, obj)
+                                : set(b, fromB + i - aSize, obj);
 
       for (int k = 0; k < c.k; k++) {
-        int i = Util.POW3[k] - 1;
-        T leader = i < aSize ? a[fromA + i]
-                             : b[fromB + i - aSize];
-        do {
-          i = (((i + 1) * 2) % c.mod) - 1;
-          leader = i < aSize ? set(a, fromA + i, leader)
-                             : set(b, fromB + i - aSize, leader);
-        } while (i != Util.POW3[k] - 1);
+        cycleLeader(k,c.mod,getter,setter);
       }
+
       // adjust a & b to account for 2*m elements we just moved around
-      if (aSize <= 2 * c.m) {
-        fromA = toA;
-        fromB += (2 * c.m) - aSize;
-      } else {
+      if (aSize > 2 * c.m) {
         fromA += 2 * c.m;
+      } else {
+        // no more a left, just work on b.
+        interleave(b, fromB + (2 * c.m) - aSize, bSize);
+        break;
       }
     }
   }
@@ -241,15 +197,14 @@ public final class PermutationInterleaver implements Interleaver {
    * For each round of permutations swaps we need some constants for that
    * round that describe the amount of elements that we'll be processing.
    */
-  private static class Constants {
-    final int n, k, m, mod;
-
-    Constants(final int size) {
+  record Constants(int n, int k, int mod, int m){
+    public static Constants from(int size){
       // Find a 2m = 3^k − 1 such that 3^k ≤ 2n < 3^(k+1)
-      n = size / 2;  // half the size of the entire collection
-      k = Util.ilog3(size); // minimum power of 3 elements to be working on
-      mod = Util.POW3[k]; // cycle modulus
-      m = (mod - 1) >> 1;  // m <= n, m is the number of elements moved at a time.
+      int n = size / 2;  // half the size of the entire collection
+      int k = Util.ilog3(size); // minimum power of 3 elements to be working on
+      int mod = Util.POW3[k]; // cycle modulus
+      int m = (mod - 1) >> 1;  // m <= n, 2m is the number of elements moved at a time.
+      return new Constants(n, k, mod, m);
     }
   }
 }
