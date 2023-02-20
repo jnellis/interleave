@@ -2,6 +2,7 @@ package net.jnellis.interleave;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * AbstractInterleaver holds some essential boilerplate for converting
@@ -10,19 +11,6 @@ import java.util.List;
  * collection type.
  */
 public abstract class AbstractInterleaver implements Interleaver {
-
-  private static void rangeCheck(Object[] array, int from, int to){
-    if(from < 0){
-      throw new IndexOutOfBoundsException("from index = "+ from);
-    }
-    if(from > to) {
-      throw new IndexOutOfBoundsException("from index("+ from +
-                                              ") > to index(" + to);
-    }
-    if(to > array.length){
-      throw new IndexOutOfBoundsException("to index = "+ to);
-    }
-  }
 
   @Override
   public  void interleave(List<?> list, Shuffle shuffle) {
@@ -39,7 +27,7 @@ public abstract class AbstractInterleaver implements Interleaver {
 
   @Override
   public void interleave(Object[] array, int from, int to, Shuffle shuffle) {
-    rangeCheck(array,from,to);
+    Objects.checkFromToIndex(from,to,array.length);
     int size = to - from;
     if (size > 1) {
       if (shuffle.out) {
@@ -78,8 +66,8 @@ public abstract class AbstractInterleaver implements Interleaver {
   public <T> void interleave(T[] a, int fromA, int toA,
                              T[] b, int fromB, int toB,
                              Shuffle shuffle) {
-    rangeCheck(a,fromA,toA);
-    rangeCheck(b,fromB,toB);
+    Objects.checkFromToIndex(fromA,toA,a.length);
+    Objects.checkFromToIndex(fromB,toB,b.length);
     int minSize = Math.min(toA - fromA, toB - fromB);
     if (minSize > 0) {
       if (shuffle.folding) {
