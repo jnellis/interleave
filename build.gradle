@@ -125,14 +125,14 @@ signing{
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["shufflePrimeOneArrayInShuffle"]
+  include = ["recursiveTwoArrayInShuffle"]
   iterations = 10
   warmupIterations = 10
   jmhVersion = '1.36'
   benchmarkMode = ['avgt']
   resultFormat = 'JSON'
   resultsFile = reportFile
-//  profilers=['jfr']
+  profilers=['jfr']
   fork = 2
   timeUnit = 'us'
   timeOnIteration = '1s'
@@ -147,7 +147,7 @@ jmh {
 //             "-XX:+UseLargePages",
              "-Xlog:gc+init"
   ]
-//  benchmarkParameters = ['ceiling': [1_000_000]]
+  benchmarkParameters = ['max': [1_000]]
 
 //  verbosity = 'EXTRA'
 //  help = true  // uncomment for jmh CLI help screen, then exit
@@ -158,6 +158,7 @@ jmh {
 //  lrf = true   // uncomment to list available result formats, then exit
 }
 
+
 jmhReport {
   def dateStr = new SimpleDateFormat("yy_MM_dd/HH_mm").format(new Date())
   jmhResultPath = reportFile
@@ -165,4 +166,17 @@ jmhReport {
 }
 tasks.jmhReport.doFirst { mkdir(jmhReport.jmhReportOutput) }
 
+
+tasks.register('clearJmhTmpDir',Delete) {
+  delete file("$buildDir/tmp/jmh").listFiles()
+}
+
+tasks.register('moveProfileResultsToJmhReportFolder', Copy) {
+  from "$buildDir/tmp/jmh"
+  include "**/profile.jfr"
+  into jmhReport.jmhReportOutput
+}
+
+tasks.jmh.dependsOn clearJmhTmpDir
 tasks.jmh.finalizedBy tasks.jmhReport
+tasks.jmhReport.finalizedBy moveProfileResultsToJmhReportFolder
