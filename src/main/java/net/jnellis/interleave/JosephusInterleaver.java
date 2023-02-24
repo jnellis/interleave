@@ -8,6 +8,7 @@ import java.util.function.Function;
 /**
  * Perform a {@link SequenceInterleaver} interleave up to the first half and
  * then performs a Josephus_2 Prime cycle on the remaining half.
+ * @see <a href="https://oeis.org/A163782">OEIS A163782</a>
  */
 public class JosephusInterleaver extends AbstractInterleaver {
 
@@ -22,8 +23,8 @@ public class JosephusInterleaver extends AbstractInterleaver {
    * This is an index offset for the cycle trailer algorithm.
    * When interleaving between two collections, we need to perform the
    * cycle trailer algorithm on the second collection only so the offset is 0.
-   * For single collections, the offset will be however many elements we
-   * swapped in the first collection.
+   * For single collections, the offset will be the starting point of the
+   * second half of the collection to be interleaved.
    */
   public final static int COLLECTION_B_ONLY = 0;
 
@@ -63,6 +64,7 @@ public class JosephusInterleaver extends AbstractInterleaver {
    *               For two collections the offset should be 0.
    * @param getter An instance GET method reference or lambda
    * @param setter An instance SET method reference or lambda
+   * @see List#set(int, Object)
    */
   private static <T> void cycleTrailer(final int k, final int offset,
                                        final Function<Integer, T> getter,
@@ -113,6 +115,7 @@ public class JosephusInterleaver extends AbstractInterleaver {
 
     if(k != size){
       Util.rotate(a.subList(k, size), b.subList(0, k), k - size);
+      // NOTE: There will always exist a j2 big enough leave 'a' interleaved.
       interleave(b.subList(2 * k - size, size)); // single list interleave
     }
   }
@@ -136,6 +139,7 @@ public class JosephusInterleaver extends AbstractInterleaver {
 
     if (k != size) {
       Util.rotate(a, fromA + k, toA, b, fromB, fromB + k, k - size);
+      // NOTE: There will always exist a j2 big enough leave 'a' interleaved.
       interleave(b, fromB + 2 * k - size, toB); // single array interleave
     }
   }
