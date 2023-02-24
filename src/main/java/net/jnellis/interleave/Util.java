@@ -569,4 +569,20 @@ public final class Util {
     } while(n-- > 2);
     return 0;
   }
+
+  /**
+   * Similar to List.set. Sets the value at the specified index and returns
+   * the old value that was at that index.
+   *
+   * @param array array to access
+   * @param index index into array
+   * @param value value to replace old value
+   * @param <T>   type of array element
+   * @return old value at that index
+   */
+  public static <T> T set(T[] array, int index, T value) {
+    T oldValue = array[index];
+    array[index] = value;
+    return oldValue;
+  }
 }

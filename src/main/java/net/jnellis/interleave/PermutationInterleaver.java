@@ -84,7 +84,7 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       int _from = from;
       Function<Integer, Object> getter = (i) -> array[_from + i];
       BiFunction<Integer, Object, Object> setter =
-          (i, obj) -> set(array, _from + i, obj);
+          (i, obj) -> Util.set(array, _from + i, obj);
 
       for (int i = 0; i < c.k; i++) {
         cycleLeader(i, c.mod, getter, setter);
@@ -92,22 +92,6 @@ public final class PermutationInterleaver extends AbstractInterleaver {
 
       from += (2 * c.m);
     }
-  }
-
-  /**
-   * Similar to List.set. Sets the value at the specified index and returns
-   * the old value that was at that index.
-   *
-   * @param array array to access
-   * @param index index into array
-   * @param value value to replace old value
-   * @param <T>   type of array element
-   * @return old value at that index
-   */
-  private static <T> T set(T[] array, int index, T value) {
-    T oldValue = array[index];
-    array[index] = value;
-    return oldValue;
   }
 
   protected <T> void interleave(List<T> a, final List<T> b) {
@@ -175,8 +159,8 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       Function<Integer,T> getter = (i) -> i < aSize ? a[_fromA + i]
                                                     : b[fromB + i - aSize];
       BiFunction<Integer,T,T> setter =
-          (i, obj) -> i < aSize ? set(a, _fromA + i, obj)
-                                : set(b, fromB + i - aSize, obj);
+          (i, obj) -> i < aSize ? Util.set(a, _fromA + i, obj)
+                                : Util.set(b, fromB + i - aSize, obj);
 
       for (int k = 0; k < c.k; k++) {
         cycleLeader(k,c.mod,getter,setter);
