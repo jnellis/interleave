@@ -192,6 +192,30 @@ public class InPlaceInterleaverBench {
   }
 
   @Benchmark
+  public List<Object> josephusOneListInShuffle(){
+    Interleavers.JOSEPHUS.interleave(list, Shuffle.IN);
+    return list;
+  }
+
+  @Benchmark
+  public List<Object> josephusTwoListInShuffle() {
+    Interleavers.JOSEPHUS.interleave(
+        list.subList(0, max / 2),
+        list.subList(max / 2, list.size()),
+        Shuffle.IN);
+    return list;
+  }
+
+  @Benchmark
+  public Object[] josephusTwoArrayInShuffle() {
+    Interleavers.JOSEPHUS.interleave(
+        arr, 0, max / 2,
+        arr, max / 2, max,
+        Shuffle.IN);
+    return arr;
+  }
+
+  @Benchmark
   public Object[] shufflePrimeOneArrayInShuffle(){
     Interleavers.SHUFFLE.interleave(arr, Shuffle.IN);
     return arr;

@@ -2,12 +2,14 @@ package net.jnellis.interleave;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
- * Perform a sequence interleave up to the first half and then performs a j2
- * prime cycle on the remaining half.
+ * Perform a {@link SequenceInterleaver} interleave up to the first half and
+ * then performs a Josephus_2 Prime cycle on the remaining half.
  */
-public class JosephusInterleaver implements Interleaver {
+public class JosephusInterleaver extends AbstractInterleaver {
 
   /**
    * No-arg constructor provided for use by {@link Interleavers} which creates
@@ -16,221 +18,125 @@ public class JosephusInterleaver implements Interleaver {
   public JosephusInterleaver() {
   }
 
-  @Override
-  public void interleave(List<?> list, Shuffle shuffle) {
-    if(list.size() > 1){
-      if (shuffle.out) {
-        list = list.subList(1,list.size());
+  /**
+   * This is an index offset for the cycle trailer algorithm.
+   * When interleaving between two collections, we need to perform the
+   * cycle trailer algorithm on the second collection only so the offset is 0.
+   * For single collections, the offset will be however many elements we
+   * swapped in the first collection.
+   */
+  public final static int COLLECTION_B_ONLY = 0;
+
+  @SuppressWarnings({"rawtypes","unchecked"})
+  protected void interleave(List<?> list){
+    while(list.size() > 1) {
+      final int size = list.size();
+      int midpt = size / 2;
+      // process in chunks based on J2 prime-sized cycles
+      int k = Util.findNextLowestJ2Prime(midpt);
+
+      // swap first half
+      for (int i = 0; i < k; i++) {
+        Collections.swap(list, i, midpt + Util.a025480(i));
       }
-      if(shuffle.folding){
-        Collections.reverse(list.subList(list.size()/2, list.size()));
+      // interleave back half using Josephus_2 prime cycle
+      cycleTrailer(k, midpt, ((List) list)::get, ((List) list)::set);
+
+      // rotate left the un-interleaved elements between k and midpt
+      // into the back half of the list.
+      if (k != midpt) {
+        Collections.rotate(list.subList(k, k + midpt), k - midpt);
       }
-      interleave(list);
+      // restart the interleave process on the end bit of the list.
+      list = list.subList(2 * k, size);
     }
   }
 
-  private static <T> void interleave(List<T> list){
-    int size = list.size();
-    if(size<2) return;
-    if(size<4){
-      Collections.swap(list, 0,1);
-      return;
-    }
-    int midpt = size/2;
-    // process in chunks based on J2 prime-sized cycles
-    int k = Util.findNextLowestJ2Prime(midpt);
-
-    // rotate elements we're not working on out of the way.
-    if(k != midpt){
-      Collections.rotate(list.subList(k,size),k-midpt);
-      interleave(list.subList(2*k+1,size));
-    }
-
-    // swap front half
-    for (int i = 0; i < k; i++) {
-      Collections.swap(list,i,k+Util.a025480(i));
-    }
-
-    // Perform a J2 prime cycle to fix back third quarter and interleave the rest
+  /**
+   * The Josephus_2 prime cycle trailer. Takes a forward value and places
+   * it at the trailing index.
+   * @param k a Josephus_2 prime that coincides with size of a previously
+   *          half interleaved collection or two collections.
+   * @param offset For single collections being interleaved, the offset is a
+   *               J2 prime (k) if rotating elements before interleaving,
+   *               or the midpoint if rotating elements after interleaving.
+   *               For two collections the offset should be 0.
+   * @param getter An instance GET method reference or lambda
+   * @param setter An instance SET method reference or lambda
+   */
+  private static <T> void cycleTrailer(final int k, final int offset,
+                                       final Function<Integer, T> getter,
+                                       final BiFunction<Integer,T,T> setter){
     int trailerIdx = 0;
-    T initialVal = list.get(k + trailerIdx);
-    for (int i = 0; i < k-1; i++) {
+    T initialVal = getter.apply(offset + trailerIdx);
+    for (int i = 0; i < k - 1; i++) {
       int nextIdx = Util.a025480(k + trailerIdx);
-      list.set(k + trailerIdx, list.get(k + nextIdx));
+      setter.apply(offset + trailerIdx, getter.apply(offset + nextIdx));
       trailerIdx = nextIdx;
     }
-    list.set(k + trailerIdx, initialVal);
-
+    setter.apply(offset + trailerIdx, initialVal);
   }
 
-  @Override
-  public void interleave(Object[] array, int from, int to, Shuffle shuffle) {
-    int size = to - from;
-    if (size > 1) {
-      if (shuffle.out) { // out-shuffle
-        if (size == 2) { return;  } // too small, no change
-        from++;
-        size--;
+  protected void interleave(final Object[] array, int from, final int to) {
+    while (to - from > 1) {
+      int midpt = (to - from )/ 2;
+      int k = Util.findNextLowestJ2Prime(midpt);
+
+      for (int i = 0; i < k; i++) {
+        Util.swap(array, from + i, from + midpt + Util.a025480(i));
       }
-      if (shuffle.folding) {
-        Util.reverse(array, from + (size / 2), to);
+
+      final int _from = from; // for lambdas
+      cycleTrailer(k, midpt,
+                   (i) -> array[_from + i], // getter
+                   (i, obj) -> Util.set(array, _from + i, obj)); // setter
+
+      if (k != midpt) {
+        Util.rotate(array, from + k, from + k + midpt, k - midpt);
       }
-      interleave(array, from, to);
-    }
-  }
-
-  private static <T> void interleave(T[] array, int from, int to) {
-    int size = to - from;
-    if(size < 2) return;
-    if(size < 4){
-      Util.swap(array,from, from+1);
-      return;
-    }
-    int midpt = (size) >> 1;
-    // choose closest J2-prime less than midpt
-//    int pos = Arrays.binarySearch(Util.j2primes, midpt);
-//
-//    int k = (pos < 0) ? Util.j2primes[-(pos+2)] : Util.j2primes[pos];
-    int k = Util.findNextLowestJ2Prime(midpt);
-
-    if (k != midpt) {
-      // rotate difference out of the way
-      Util.rotate(array, from + k, to, k - midpt);
-      interleave(array, from + 2 * k + 1, to);
-    }
-
-    // swap front half
-    for (int i = 0; i < k; i++) {
-      Util.swap(array, from + i, from + k + Util.a025480(i));
-    }
-
-    // J2 prime cycle to fix scrambled back quarter and interleave the rest
-    int base = from + k;
-    int trailerIdx = 0;
-    T initialVal = array[base + trailerIdx];
-    for (int i = 0; i < k - 1; i++) {
-      int next = Util.a025480(k + trailerIdx);
-      array[base + trailerIdx] = array[base + next];
-      trailerIdx = next;
-    }
-    array[base + trailerIdx] = initialVal;
-  }
-
-  @Override
-  public <T> void interleave(List<T> a, List<T> b, Shuffle shuffle) {
-    int minSize = Math.min(a.size(), b.size());
-    if(minSize > 0) {
-      if (shuffle.folding) {
-        // rotate non-interleaved items to the back
-        Collections.rotate(b, minSize - b.size());
-        // reverse the rest
-        Collections.reverse(b.subList(0, minSize));
-      }
-      if (shuffle.out) {
-        if (minSize > 1) {
-          interleave(a.subList(1, minSize), b.subList(0, minSize - 1));
-        }
-      } else {
-        interleave(a.subList(0, minSize), b.subList(0, minSize));
-      }
+      from += 2 * k;
     }
   }
 
-  private static <T> void interleave(List<T> a, List<T> b) {
-    int aSize = a.size(), bSize = b.size();
-    assert aSize != 0 : "List A can not be empty.";
-    if (aSize + bSize == 2) {
-      a.set(0, b.set(0, a.get(0)));
-      return;
-    }
+  protected <T> void interleave(List<T> a, List<T> b) {
+    assert !a.isEmpty() : "Lists should not be empty.";
+    assert a.size() == b.size(): "Lists should be equal sizes at start.";
 
-    int minSize = Math.min(aSize, bSize);
+    int size = a.size();
+    int k = Util.findNextLowestJ2Prime(size);
 
-    int k = Util.findNextLowestJ2Prime(minSize);
-
-    // swap upto k elements in list a
     for (int i = 0; i < k; i++) {
       a.set(i, b.set(Util.a025480(i), a.get(i)));
     }
 
-    // J2 prime cycle to interleave scramble first half of b and rest of b
-    int trailerIdx = 0;
-    T initialVal = b.get(trailerIdx);
-    for (int i = 0; i < k - 1; i++) {
-      int nextIdx = Util.a025480(k + trailerIdx);
-      b.set(trailerIdx, b.get( nextIdx));
-      trailerIdx = nextIdx;
+    cycleTrailer(k, COLLECTION_B_ONLY, b::get, b::set);
+
+    if(k != size){
+      Util.rotate(a.subList(k, size), b.subList(0, k), k - size);
+      interleave(b.subList(2 * k - size, size)); // single list interleave
     }
-    b.set( trailerIdx, initialVal);
-
-    if (minSize > k) {
-      Util.rotate(a.subList(k, aSize), b, k - aSize);
-
-      int nextStart = 2 * k + 1 - minSize;
-      if (bSize - nextStart > 1) {
-        interleave(b.subList(nextStart, bSize));
-      }
-    }
-
   }
 
-  @Override
-  public <T> void interleave(T[] a, int fromA, int toA,
-                             T[] b, int fromB, int toB,
-                             Shuffle shuffle) {
-    int minSize = Math.min(toA - fromA, toB - fromB);
-    if (minSize > 0) {
-      if (shuffle.folding) {
-        // rotate non-interleaved items to the back
-        Util.rotate(b, fromB, toB, minSize - toB);
-        // reverse the rest
-        Util.reverse(b, fromB, minSize);
-      }
-      if (shuffle.out) { // out-shuffle
-        if (minSize > 1) {
-          interleave(a, fromA + 1, fromA + minSize,
-                     b, fromB, fromB + minSize - 1);
-        }
-      } else {
-        interleave(a, fromA, fromA + minSize, b, fromB, fromB + minSize);
-      }
-    }
+  protected <T> void interleave(T[] a, int fromA, int toA,
+                                T[] b, int fromB, int toB) {
+    assert toA - fromA != 0 : "Lists should not be empty.";
+    assert toA - fromA == toB - fromB : "Lists should be equal sizes at start.";
 
-
-  }
-
-  private static <T> void interleave(T[] a, int fromA, int toA,
-                                     T[] b, int fromB, int toB) {
-    int aSize = toA - fromA, bSize = toB - fromB;
-    assert aSize != 0 : "List A can not be empty.";
-
-    if (aSize + bSize == 2) {
-      Util.swap(a, fromA, b, fromB);
-      return;
-    }
-    int minSize = Math.min(aSize, bSize);
-    int k = Util.findNextLowestJ2Prime(minSize);
+    int size = toA - fromA;
+    int k = Util.findNextLowestJ2Prime(size);
 
     for (int i = 0; i < k; i++) {
       Util.swap(a, fromA + i, b, fromB + Util.a025480(i));
     }
 
-    int trailerIdx = 0;
-    T initialVal = b[trailerIdx];
-    for (int i = 0; i < k - 1; i++) {
-      int next = Util.a025480(k + trailerIdx);
-      b[trailerIdx] = b[next];
-      trailerIdx = next;
-    }
-    b[trailerIdx] = initialVal;
+    final int _from = fromB;  // for lambdas
+    cycleTrailer(k, COLLECTION_B_ONLY,
+                 (i) -> b[_from + i],  // getter
+                 (i, obj) -> Util.set(b, _from + i, obj)); // setter
 
-    if(minSize > k){
-      Util.rotate(a, fromA+k, toA,
-                  b, fromB, toB, k - aSize);
-      int nextStart = 2 * k + 1 - minSize;
-      if(bSize - nextStart > 1){
-        interleave(b, fromB + nextStart, toB);
-      }
+    if (k != size) {
+      Util.rotate(a, fromA + k, toA, b, fromB, fromB + k, k - size);
+      interleave(b, fromB + 2 * k - size, toB); // single array interleave
     }
   }
 }
