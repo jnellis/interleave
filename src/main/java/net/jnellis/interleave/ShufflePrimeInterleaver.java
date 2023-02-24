@@ -2,227 +2,127 @@ package net.jnellis.interleave;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
+
+import static net.jnellis.interleave.Util.set;
 
 /**
- * User: Joe Nellis
- * Date: 11/18/2022
- * Time: 12:44 PM
+ * Implementation of Shuffle Prime interleaving based on Josephus_2 Primes
+ * @see <a href="https://research.utwente.nl/en/publications/permuting-operations-on-strings-their-permutations-and-their-prim">
+ *   Permuting Operations on Strings: Their Permutations and Their Primes</a>
+ * @see <a href="https://oeis.org/A163782">OEIS A163782</a>
  */
-public
-class ShufflePrimeInterleaver implements Interleaver{
+public class ShufflePrimeInterleaver extends AbstractInterleaver {
 
   /**
    * No-arg constructor provided for use by {@link Interleavers} which creates
    * single instances. Use {@link Interleavers#SHUFFLE}
    */
-  ShufflePrimeInterleaver(){}
+  ShufflePrimeInterleaver() {}
 
-  @Override
-  public void interleave(List<?> list, Shuffle shuffle) {
-    if(list.size() > 1){
-      if(shuffle.out){
-        list = list.subList(1,list.size());
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  protected void interleave(List<?> list) {
+    while (list.size() > 1) {
+      final int size = list.size();
+
+      int midpt = size / 2;
+      int j2 = Util.findNextLowestJ2Prime(midpt);
+      int k = j2 * 2; // The Shuffle Prime
+
+      if (k != size) {
+        // rotate unhandled elements out of the way before interleaving because
+        // the cycle leader bounces around both halves of the list.
+        Collections.rotate(list.subList(j2, j2 + midpt), j2 - midpt);
       }
-      if(shuffle.folding){
-        Collections.reverse(list.subList(list.size()/2, list.size()));
-      }
-      interleave(list);
-    }
 
-  }
+      // interleave this section.
+      cycleLeader(k, ((List) list).get(0), ((List) list)::set);
 
-  // single list in-shuffle
-  private static <T> void interleave(List<T> list){
-    int size = list.size();
-    if(size<2)return;
-    if(size<4){
-      Collections.swap(list,0,1);
-      return;
-    }
-    int midpt = size / 2;
-
-    int k = Util.findNextLowestJ2Prime(midpt) * 2;
-
-    if (k != size) {
-      // rotate difference out of the way
-      Collections.rotate(list.subList(k/2,size),k/2 - size/2);
-      interleave(list.subList(k+1,size));
-    }
-
-    int idx = 0;
-    int mod = k + 1;
-    final long u64_c = Long.divideUnsigned(-1L,mod)+1;
-    T leader = list.get(idx);
-    for (int i = 0; i < k; i++) {
-//      idx = (2*idx+1) % mod;
-      idx = Util.fastmod(2*idx+1,u64_c, mod);
-      leader = list.set(idx, leader);
-    }
-
-  }
-
-  @Override
-  public void interleave(Object[] array, int from, int to, Shuffle shuffle) {
-    int size = to - from;
-    if (size > 1) {
-      if (shuffle.out) { // out-shuffle
-        if (size == 2) {
-          return;
-        } // too small, no change
-        from++;
-        size--;
-      }
-      if (shuffle.folding) {
-        Util.reverse(array, from + (size / 2), to);
-      }
-      interleave(array, from, to);
-    }
-  }
-
-
-  private static <T> void interleave(T[] array, int from, int to) {
-    int size = to - from;
-    if(size < 2) return;
-    if(size < 4){
-      Util.swap(array,from, from+1);
-      return;
-    }
-    int midpt = size / 2;
-    // choose closest J2-prime less than midpt
-//    int pos = Arrays.binarySearch(Util.j2primes, midpt);
-//    // S-primes are J2-primes times two
-//    int k = ((pos < 0) ? Util.j2primes[-(pos+2)] : Util.j2primes[pos])*2;
-    int k = Util.findNextLowestJ2Prime(midpt) * 2;
-
-    if (k != size) {
-      // rotate difference out of the way
-      Util.rotate(array, from + k/2, to, k/2 - size/2);
-      interleave(array, from + k + 1, to);
-    }
-
-    int idx = 0;
-    int mod = k + 1;
-    final long u64_c = Long.divideUnsigned(-1L,mod)+1;
-    T leader = array[from + idx];
-    for (int i = 0; i < k; i++) {
-//      idx = (2*idx+1) % mod;
-      idx = Util.fastmod(2*idx+1,u64_c, mod);
-      leader = set(array, from + idx, leader);
+      // reset list to interleave the rest.
+      list = list.subList(k, size);
     }
   }
 
   /**
-   * Similar to List.set. Sets the value at the specified index and returns
-   * the old value that was at that index.
-   *
-   * @param array array to access
-   * @param index index into array
-   * @param value value to replace old value
-   * @param <T>   type of array element
-   * @return old value at that index
+   * Cycle leader algorithm for interleaving elements from the start and a k/2
+   * midpoint of a collection(s).
+   * @param k Shuffle prime, always an even number, twice its J2 prime.
+   * @param initialValue The value at the start of the list, in lieu of
+   *                     providing a getter for just one use.
+   * @param setter instance SET method reference or lambda
+   * @see List#set(int, Object)
    */
-  private static <T> T set(T[] array, int index, T value) {
-    T oldValue = array[index];
-    array[index] = value;
-    return oldValue;
-  }
-
-  @Override
-  public <T> void interleave(List<T> a, List<T> b, Shuffle shuffle) {
-    int minSize = Math.min(a.size(), b.size());
-    if(minSize > 0) {
-      if (shuffle.folding) {
-        // rotate non-interleaved items to the back
-        Collections.rotate(b, minSize - b.size());
-        // reverse the rest
-        Collections.reverse(b.subList(0, minSize));
-      }
-      if (shuffle.out) {
-        if (minSize > 1) {
-          interleave(a.subList(1, minSize), b.subList(0, minSize - 1));
-        }
-      } else {
-        interleave(a.subList(0, minSize), b.subList(0, minSize));
-      }
-    }
-  }
-
-  private static <T> void interleave(List<T> a, List<T> b) {
-    int size = a.size();
-    if (size == 1) {
-      a.set(0, b.set(0, a.get(0)));
-      return;
-    }
-
-    int j2 = Util.findNextLowestJ2Prime(size);
-    int k = j2 * 2;
-
-    if( size > j2){
-      Util.rotate(a.subList(j2,size), b.subList(0, j2), j2);
-      interleave(b.subList(k-size,size));
-    }
-
+  @SuppressWarnings({"unchecked"})
+  private static <T> void cycleLeader(final int k,
+                                      final Object initialValue,
+                                      final BiFunction<Integer, T, T> setter) {
     int idx = 0;
     int mod = k + 1;
-    final long u64_c = Long.divideUnsigned(-1L,mod)+1;
-    T leader =  a.get(idx);
+    final long u64_c = Long.divideUnsigned(-1L, mod) + 1;
+    T leader = (T) initialValue;
     for (int i = 0; i < k; i++) {
-//      idx = (2*idx+1) % mod;
-      idx = Util.fastmod(2*idx+1,u64_c, mod);
-      leader = idx < size ? a.set(idx, leader)
-                           : b.set(idx - size, leader);
+      idx = Util.fastmod(2 * idx + 1, u64_c, mod);
+      leader = setter.apply(idx, leader);
     }
   }
 
-  @Override
-  public <T> void interleave(T[] a, int fromA, int toA,
-                             T[] b, int fromB,  int toB,
-                             Shuffle shuffle) {
-    int minSize = Math.min(toA - fromA, toB - fromB);
-    if (minSize > 0) {
-      if (shuffle.folding) {
-        // rotate non-interleaved items to the back
-        Util.rotate(b, fromB, toB, minSize - toB);
-        // reverse the rest
-        Util.reverse(b, fromB, minSize);
+  protected void interleave(final Object[] array, int from, final int to) {
+    while (to - from > 1) {
+      final int size = to - from;
+      int midpt = size / 2;
+      int j2 = Util.findNextLowestJ2Prime(midpt);
+      int k = j2 * 2;
+
+      if (k != size) {
+        Util.rotate(array, from + j2, from + j2 + midpt, j2 - midpt);
       }
-      if (shuffle.out) { // out-shuffle
-        if (minSize > 1) {
-          interleave(a, fromA + 1, fromA + minSize,
-                     b, fromB, fromB + minSize - 1);
-        }
-      } else {
-        interleave(a, fromA, fromA + minSize, b, fromB, fromB + minSize);
-      }
+
+      int _from = from;
+      cycleLeader(k, array[from],
+                  (i, obj) -> set(array, _from + i, obj)); // setter
+
+      from += k;
     }
   }
 
-  private static <T> void interleave(T[] a, int fromA, int toA,
-                                     T[] b, int fromB, int toB) {
-    int size = toA - fromA;
-    if (size == 1) {
-      Util.swap(a, fromA, b, fromB);
-      return;
-    }
+  protected <T> void interleave(final List<T> a, final List<T> b) {
+    assert !a.isEmpty() : "Lists should not be empty.";
+    assert a.size() == b.size() : "Lists should be equal sizes at start.";
+
+    int size = a.size();
 
     int j2 = Util.findNextLowestJ2Prime(size);
     int k = j2 * 2;
 
-    if( size > j2){
-      Util.rotate(a,fromA + j2,toA, b, fromB, fromB + j2, j2);
+    if (j2 != size) {
+      Util.rotate(a.subList(j2, size), b.subList(0, j2), j2 - size);
+      // NOTE: There will always exist a j2 big enough leave 'a' interleaved.
+      interleave(b.subList(k - size, size));
+    }
+
+    cycleLeader(k, a.get(0),
+                (Integer i, T obj) -> i < size ? a.set(i, obj)
+                                               : b.set(i - size, obj));
+  }
+
+  protected <T> void interleave(final T[] a, final int fromA, final int toA,
+                                final T[] b, final int fromB, final int toB) {
+    assert toA - fromA != 0 : "Lists should not be empty.";
+    assert toA - fromA == toB - fromB : "Lists should be equal sizes at start.";
+
+    int size = toA - fromA;
+
+    int j2 = Util.findNextLowestJ2Prime(size);
+    int k = j2 * 2;
+
+    if (j2 != size) {
+      Util.rotate(a, fromA + j2, toA, b, fromB, fromB + j2, j2 - size);
+      // NOTE: There will always exist a j2 big enough leave 'a' interleaved.
       interleave(b, fromB + k - size, size);
     }
 
-    int idx = 0;
-    int mod = k + 1;
-    final long u64_c = Long.divideUnsigned(-1L,mod)+1;
-    T leader =  a[fromA + idx];
-    for (int i = 0; i < k; i++) {
-//      idx = (2*idx+1) % mod;
-      idx = Util.fastmod(2*idx+1,u64_c, mod); 
-      leader = idx < size ?  set(a, fromA + idx, leader)
-                          :  set(b, fromB + idx - size, leader);
-    }
-
+    cycleLeader(k, a[fromA],
+                (Integer i, T obj) -> i < size ? set(a, fromA + i, obj)
+                                               : set(b, fromB + i - size, obj));
   }
 }
