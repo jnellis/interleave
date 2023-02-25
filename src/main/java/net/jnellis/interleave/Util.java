@@ -265,6 +265,7 @@ public final class Util {
    * <pre>{@code
    *     int pd = d < 0 ? -d : d ; // divisor d can't be Integer.MIN_VALUE
    *     long u64c = Long.divideUnsigned( -1L, pd) + 1L +
+   *          // skip when divisors are always positive
    *         ((pd & (pd-1L))==0 ? 1L : 0); }
    * </pre>
    * <p>
@@ -276,12 +277,9 @@ public final class Util {
    * @return remainder of n % d
    */
   public static int fastmod(int n, long u64_c, int pd) {
-    //    int pd = d < 0 ? -d : d ;
-    //    long u64c = Long.divideUnsigned( -1L, pd) + 1L +
-    //        ((pd & (pd-1L))==0 ? 1L : 0);
-
     long u64lowbits = (long) n * u64_c;
     long highbits = Math.unsignedMultiplyHigh(u64lowbits, pd);
+    // uncomment to support negative divisors.
     return (int) (highbits);//- (( pd - 1) & ( n >> 31)));
   }
 

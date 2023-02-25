@@ -125,16 +125,16 @@ signing{
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["recursiveTwoArrayInShuffle"]
+  include = ["LogBench"]
   iterations = 10
-  warmupIterations = 10
+  warmupIterations = 20
   jmhVersion = '1.36'
   benchmarkMode = ['avgt']
   resultFormat = 'JSON'
   resultsFile = reportFile
-  profilers=['jfr']
+//  profilers=['jfr']
   fork = 2
-  timeUnit = 'us'
+  timeUnit = 'ns'
   timeOnIteration = '1s'
   warmup = '1s'
   includeTests = false
@@ -147,7 +147,7 @@ jmh {
 //             "-XX:+UseLargePages",
              "-Xlog:gc+init"
   ]
-  benchmarkParameters = ['max': [1_000]]
+//  benchmarkParameters = ['max': [1_000]]
 
 //  verbosity = 'EXTRA'
 //  help = true  // uncomment for jmh CLI help screen, then exit
@@ -168,7 +168,11 @@ tasks.jmhReport.doFirst { mkdir(jmhReport.jmhReportOutput) }
 
 
 tasks.register('clearJmhTmpDir',Delete) {
-  delete file("$buildDir/tmp/jmh").listFiles()
+  def files = file("$buildDir/tmp/jmh")?.listFiles()
+  if(files != null && files.length != 0) {
+    delete files
+  }
+
 }
 
 tasks.register('moveProfileResultsToJmhReportFolder', Copy) {

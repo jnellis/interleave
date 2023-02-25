@@ -12,8 +12,17 @@ import java.util.Objects;
  */
 public abstract class AbstractInterleaver implements Interleaver {
 
+  /**
+   * This is mostly a utility class so overriding the default constructor
+   * is purely to quiet the javadoc compiler. The {@link Interleavers} class
+   * is and example of actual instantiation of Interleaver via the no arg
+   * constructor.  It is not necessary to create a new instance of interleaver
+   * for each collection type being used.
+   */
+  protected AbstractInterleaver(){}
+
   @Override
-  public  void interleave(List<?> list, Shuffle shuffle) {
+  public void interleave(List<?> list, Shuffle shuffle) {
     if (list.size() > 1) {
       if (shuffle.out) {
         list = list.subList(1, list.size());
@@ -88,12 +97,42 @@ public abstract class AbstractInterleaver implements Interleaver {
     }
   }
 
+  /**
+   * One list in-shuffle implementation. Called from
+   * {@link Interleaver#interleave(List, Shuffle)}
+   * @param list list to be interleaved
+   */
   protected abstract void interleave(List<?> list);
 
+  /**
+   * Two list in-shuffle implementation.  Called from
+   * {@link Interleaver#interleave(List, List, Shuffle)}
+   * @param a first list
+   * @param b second list
+   * @param <T> type of elements in lists
+   */
   protected abstract <T> void interleave(List<T> a, List<T> b);
 
-  protected abstract void interleave(Object[] arr, int from, int to);
+  /**
+   * One array in-shuffle implementation.  Called from
+   * {@link Interleaver#interleave(Object[], int, int, Shuffle)}
+   * @param array array to be interleaved
+   * @param from starting index
+   * @param to ending index (exclusive)
+   */
+  protected abstract void interleave(Object[] array, int from, int to);
 
+  /**
+   * Two array in-shuffle implementation.  Called from
+   * {@link Interleaver#interleave(Object[], int, int, Object[], int, int, Shuffle)}
+   * @param a first array
+   * @param fromA first array starting index
+   * @param toA first array ending index (exclusive)
+   * @param b second array
+   * @param fromB second array starting index
+   * @param toB second array ending index (exclusive)
+   * @param <T>  type of elements in arrays
+   */
   protected abstract <T> void interleave(T[] a, int fromA, int toA,
                                          T[] b, int fromB, int toB);
  
