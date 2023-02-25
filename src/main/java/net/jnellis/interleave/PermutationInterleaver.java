@@ -3,7 +3,6 @@ package net.jnellis.interleave;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * An implementation of
@@ -41,8 +40,8 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       // For each i ∈ {0, 1, . . . , k − 1}, starting at 3^i, do the cycle leader
       // algorithm for the in-shuffle permutation of order 2m elements
       final List l = list;
-      for (int i = 0; i < c.k; i++) {
-        cycleLeader(i, c.mod, l::get, l::set);
+      for (int k = 0; k < c.k; k++) {
+        cycleLeader(k, c.mod, l.get(Util.POW3[k]-1), l::set);
       }
       // shorten the list to work on remaining elements.
       list = list.subList(2 * c.m, size);
@@ -53,13 +52,14 @@ public final class PermutationInterleaver extends AbstractInterleaver {
    * Cycle leader for lists using Lemire fastmod. Using lambdas turns out to
    * be faster than not, so said jmh.
    */
+  @SuppressWarnings({"unchecked"})
   private static <T> void cycleLeader(final int k, final int mod,
-                                      final Function<Integer,T> getter,
+                                      final Object initialValue,
                                       final BiFunction<Integer,T,T> setter ){
     final long u64c = Long.divideUnsigned(-1L, mod) + 1L;
     final int startIdx = Util.POW3[k];
     int i = startIdx;
-    T leader = getter.apply(i - 1);
+    T leader = (T)initialValue;
     do {
       // i = ((i * 2) % c.mod) ; // slow mod for history sake
       i = Util.fastmod(i * 2, u64c, mod);
@@ -82,12 +82,11 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       }
 
       int _from = from;
-      Function<Integer, Object> getter = (i) -> array[_from + i];
       BiFunction<Integer, Object, Object> setter =
           (i, obj) -> Util.set(array, _from + i, obj);
 
-      for (int i = 0; i < c.k; i++) {
-        cycleLeader(i, c.mod, getter, setter);
+      for (int k = 0; k < c.k; k++) {
+        cycleLeader(k, c.mod, array[from + Util.POW3[k] - 1], setter);
       }
 
       from += (2 * c.m);
@@ -114,13 +113,11 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       }
 
       List<T> _a = a;
-      Function<Integer,T> getter = (i)-> i < aSize ? _a.get(i)
-                                                   : b.get(i-aSize);
       BiFunction<Integer,T,T> setter = (i,t)-> i < aSize ? _a.set(i,t)
                                                          : b.set(i - aSize, t);
 
       for (int k = 0; k < c.k; k++) {
-        cycleLeader(k,c.mod,getter,setter);
+        cycleLeader(k, c.mod, _a.get(Util.POW3[k] - 1), setter);
       }
 
       // adjust a & b to account for 2*m elements we just moved around
@@ -156,14 +153,12 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       }
 
       int _fromA = fromA;
-      Function<Integer,T> getter = (i) -> i < aSize ? a[_fromA + i]
-                                                    : b[fromB + i - aSize];
       BiFunction<Integer,T,T> setter =
           (i, obj) -> i < aSize ? Util.set(a, _fromA + i, obj)
                                 : Util.set(b, fromB + i - aSize, obj);
 
       for (int k = 0; k < c.k; k++) {
-        cycleLeader(k,c.mod,getter,setter);
+        cycleLeader(k, c.mod, a[fromA + Util.POW3[k] - 1], setter);
       }
 
       // adjust a & b to account for 2*m elements we just moved around
