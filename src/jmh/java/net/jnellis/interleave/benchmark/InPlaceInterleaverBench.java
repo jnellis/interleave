@@ -1,5 +1,6 @@
 package net.jnellis.interleave.benchmark;
 
+import net.jnellis.interleave.Interleaver;
 import net.jnellis.interleave.Interleavers;
 import net.jnellis.interleave.Shuffle;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -20,16 +21,37 @@ import java.util.stream.IntStream;
 @State(Scope.Benchmark)
 public class InPlaceInterleaverBench {
 
-//  @Param({"10", "100", "1000", "10000", "100000", "1000000", "10000000"})
-    @Param({"64", "256", "1024", "4096", "16384", "65536", "262144", "1048576", })
-//        "16777216", "268435456"})
-  static public int max;
+  @Param({"sequence","permutation","recursive","josephus","shuffle"})
+  public String interleaverName;
 
+  @Param({"10", "100", "1000", "10000", "100000", "1000000", "10000000"})
+//    @Param({"64", "256", "1024", "4096", "16384", "65536", "262144", "1048576", })
+//        "16777216", "268435456"})
+   public int max;
+
+  
+  enum INTERLEAVERS {
+    sequence(Interleavers.SEQUENCE), 
+    permutation(Interleavers.PERMUTATION), 
+    recursive(Interleavers.RECURSIVE),
+    josephus(Interleavers.JOSEPHUS), 
+    shuffle(Interleavers.SHUFFLE);
+    public final Interleaver interleaver;
+
+    INTERLEAVERS(Interleaver i) {
+      this.interleaver = i;
+    }
+  }
+
+  Interleaver interleaver;
   List<Object> list;
   Object[] arr;
 
   @Setup(Level.Trial)
   public void setup() {
+    // choose interleaver
+    interleaver = INTERLEAVERS.valueOf(interleaverName).interleaver;
+
     // We don't do anything with these numbers and so there should be no need
     // to make an effort to dereference the Integer objects they are pointing
     // to. But...in an effort to not have the runtime just see the swapping of
@@ -52,133 +74,20 @@ public class InPlaceInterleaverBench {
   }
 
   @Benchmark
-  public Object[] a025480OneArrayInShuffle() {
-    Interleavers.SEQUENCE.interleave(arr, Shuffle.IN);
+  public Object[] OneArrayInShuffle() {
+    interleaver.interleave(arr, Shuffle.IN);
     return arr;
   }
 
   @Benchmark
-  public List<Object> a025480OneListInShuffle() {
-    Interleavers.SEQUENCE.interleave(list, Shuffle.IN);
+  public List<Object> OneListInShuffle() {
+    interleaver.interleave(list, Shuffle.IN);
     return list;
   }
 
   @Benchmark
-  public List<Object> a025480OneListOutShuffle() {
-    Interleavers.SEQUENCE.interleave(list, Shuffle.OUT);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> a025480OneListFoldingOutShuffle() {
-    Interleavers.SEQUENCE.interleave(list, Shuffle.OUT_FOLDING);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> a025480OneListFoldingInShuffle() {
-    Interleavers.SEQUENCE.interleave(list, Shuffle.IN_FOLDING);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> a025480TwoListInShuffle() {
-    Interleavers.SEQUENCE.interleave(
-        list.subList(0, max / 2),
-        list.subList(max / 2, list.size()),
-        Shuffle.IN);
-    return list;
-  }
-
-  @Benchmark
-  public Object[] a025480TwoArrayInShuffle() {
-    Interleavers.SEQUENCE.interleave(
-        arr, 0, max / 2,
-        arr, max / 2, max,
-        Shuffle.IN);
-    return arr;
-  }
-
-  //// PermutationInterleaver benchmarks
-  @Benchmark
-  public Object[] permutationOneArrayInShuffle(){
-    Interleavers.PERMUTATION.interleave(arr, Shuffle.IN);
-    return arr;
-  }
-
-  @Benchmark
-  public List<Object> permutationOneListOutShuffle() {
-    Interleavers.PERMUTATION.interleave(list, Shuffle.OUT);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> permutationOneListInShuffle() {
-    Interleavers.PERMUTATION.interleave(list, Shuffle.IN);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> permutationOneListFoldingOutShuffle() {
-    Interleavers.PERMUTATION.interleave(list, Shuffle.OUT_FOLDING);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> permutationOneListFoldingInShuffle() {
-    Interleavers.PERMUTATION.interleave(list, Shuffle.IN_FOLDING);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> permutationTwoListInShuffle() {
-    Interleavers.PERMUTATION.interleave(
-        list.subList(0, max / 2),
-        list.subList(max / 2, list.size()),
-        Shuffle.IN);
-    return list;
-  }
-
-  @Benchmark
-  public Object[] permutationTwoArrayInShuffle() {
-    Interleavers.PERMUTATION.interleave(
-        arr, 0, max / 2,
-        arr, max / 2, max,
-        Shuffle.IN);
-    return arr;
-  }
-
-  //// RecursiveInterleaver benchmarks
-  @Benchmark
-  public List<Object> recursiveOneListOutShuffle() {
-    Interleavers.RECURSIVE.interleave(list, Shuffle.OUT);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> recursiveOneListInShuffle() {
-    Interleavers.RECURSIVE.interleave(list, Shuffle.IN);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> recursiveTwoListInShuffle() {
-    Interleavers.RECURSIVE.interleave(
-        list.subList(0, max / 2),
-        list.subList(max / 2, list.size()),
-        Shuffle.IN);
-    return list;
-  }
-
-  @Benchmark
-  public Object[] recursiveOneArrayInShuffle(){
-    Interleavers.RECURSIVE.interleave(arr, Shuffle.IN);
-    return arr;
-  }
-
-  @Benchmark
-  public Object[] recursiveTwoArrayInShuffle() {
-    Interleavers.RECURSIVE.interleave(
+  public Object[] TwoArrayInShuffle() {
+    interleaver.interleave(
         arr, 0, max / 2,
         arr, max / 2, max,
         Shuffle.IN);
@@ -186,38 +95,182 @@ public class InPlaceInterleaverBench {
   }
 
   @Benchmark
-  public Object[] josephusOneArrayInShuffle(){
-    Interleavers.JOSEPHUS.interleave(arr, Shuffle.IN);
-    return arr;
-  }
-
-  @Benchmark
-  public List<Object> josephusOneListInShuffle(){
-    Interleavers.JOSEPHUS.interleave(list, Shuffle.IN);
-    return list;
-  }
-
-  @Benchmark
-  public List<Object> josephusTwoListInShuffle() {
-    Interleavers.JOSEPHUS.interleave(
+  public List<Object> TwoListInShuffle() {
+    interleaver.interleave(
         list.subList(0, max / 2),
         list.subList(max / 2, list.size()),
         Shuffle.IN);
     return list;
   }
 
-  @Benchmark
-  public Object[] josephusTwoArrayInShuffle() {
-    Interleavers.JOSEPHUS.interleave(
-        arr, 0, max / 2,
-        arr, max / 2, max,
-        Shuffle.IN);
-    return arr;
-  }
-
-  @Benchmark
-  public Object[] shufflePrimeOneArrayInShuffle(){
-    Interleavers.SHUFFLE.interleave(arr, Shuffle.IN);
-    return arr;
-  }
+//
+//  @Benchmark
+//  public Object[] sequenceOneArrayInShuffle() {
+//    Interleavers.SEQUENCE.interleave(arr, Shuffle.IN);
+//    return arr;
+//  }
+//
+//  @Benchmark
+//  public List<Object> sequenceOneListInShuffle() {
+//    Interleavers.SEQUENCE.interleave(list, Shuffle.IN);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> sequenceOneListOutShuffle() {
+//    Interleavers.SEQUENCE.interleave(list, Shuffle.OUT);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> sequenceOneListFoldingOutShuffle() {
+//    Interleavers.SEQUENCE.interleave(list, Shuffle.OUT_FOLDING);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> sequenceOneListFoldingInShuffle() {
+//    Interleavers.SEQUENCE.interleave(list, Shuffle.IN_FOLDING);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> sequenceTwoListInShuffle() {
+//    Interleavers.SEQUENCE.interleave(
+//        list.subList(0, max / 2),
+//        list.subList(max / 2, list.size()),
+//        Shuffle.IN);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public Object[] sequenceTwoArrayInShuffle() {
+//    Interleavers.SEQUENCE.interleave(
+//        arr, 0, max / 2,
+//        arr, max / 2, max,
+//        Shuffle.IN);
+//    return arr;
+//  }
+//
+//  //// PermutationInterleaver benchmarks
+//  @Benchmark
+//  public Object[] permutationOneArrayInShuffle(){
+//    Interleavers.PERMUTATION.interleave(arr, Shuffle.IN);
+//    return arr;
+//  }
+//
+//  @Benchmark
+//  public List<Object> permutationOneListOutShuffle() {
+//    Interleavers.PERMUTATION.interleave(list, Shuffle.OUT);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> permutationOneListInShuffle() {
+//    Interleavers.PERMUTATION.interleave(list, Shuffle.IN);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> permutationOneListFoldingOutShuffle() {
+//    Interleavers.PERMUTATION.interleave(list, Shuffle.OUT_FOLDING);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> permutationOneListFoldingInShuffle() {
+//    Interleavers.PERMUTATION.interleave(list, Shuffle.IN_FOLDING);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> permutationTwoListInShuffle() {
+//    Interleavers.PERMUTATION.interleave(
+//        list.subList(0, max / 2),
+//        list.subList(max / 2, list.size()),
+//        Shuffle.IN);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public Object[] permutationTwoArrayInShuffle() {
+//    Interleavers.PERMUTATION.interleave(
+//        arr, 0, max / 2,
+//        arr, max / 2, max,
+//        Shuffle.IN);
+//    return arr;
+//  }
+//
+//  //// RecursiveInterleaver benchmarks
+//  @Benchmark
+//  public List<Object> recursiveOneListOutShuffle() {
+//    Interleavers.RECURSIVE.interleave(list, Shuffle.OUT);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> recursiveOneListInShuffle() {
+//    Interleavers.RECURSIVE.interleave(list, Shuffle.IN);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> recursiveTwoListInShuffle() {
+//    Interleavers.RECURSIVE.interleave(
+//        list.subList(0, max / 2),
+//        list.subList(max / 2, list.size()),
+//        Shuffle.IN);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public Object[] recursiveOneArrayInShuffle(){
+//    Interleavers.RECURSIVE.interleave(arr, Shuffle.IN);
+//    return arr;
+//  }
+//
+//  @Benchmark
+//  public Object[] recursiveTwoArrayInShuffle() {
+//    Interleavers.RECURSIVE.interleave(
+//        arr, 0, max / 2,
+//        arr, max / 2, max,
+//        Shuffle.IN);
+//    return arr;
+//  }
+//
+//  @Benchmark
+//  public Object[] josephusOneArrayInShuffle(){
+//    Interleavers.JOSEPHUS.interleave(arr, Shuffle.IN);
+//    return arr;
+//  }
+//
+//  @Benchmark
+//  public List<Object> josephusOneListInShuffle(){
+//    Interleavers.JOSEPHUS.interleave(list, Shuffle.IN);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public List<Object> josephusTwoListInShuffle() {
+//    Interleavers.JOSEPHUS.interleave(
+//        list.subList(0, max / 2),
+//        list.subList(max / 2, list.size()),
+//        Shuffle.IN);
+//    return list;
+//  }
+//
+//  @Benchmark
+//  public Object[] josephusTwoArrayInShuffle() {
+//    Interleavers.JOSEPHUS.interleave(
+//        arr, 0, max / 2,
+//        arr, max / 2, max,
+//        Shuffle.IN);
+//    return arr;
+//  }
+//
+//  @Benchmark
+//  public Object[] shufflePrimeOneArrayInShuffle(){
+//    Interleavers.SHUFFLE.interleave(arr, Shuffle.IN);
+//    return arr;
+//  }
 }
