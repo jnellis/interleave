@@ -312,12 +312,12 @@ public final class Util {
    */
   public static boolean isJ2Prime(int n) {
     int count = 0, leader = 0;
-    if (n % 4 == 1 || n % 4 == 2) {
+//    if (n % 4 == 1 || n % 4 == 2) {
       do {
         leader = Util.a025480(leader + n);
         count++;
       } while (leader != 0);
-    }
+//    }
     return count == n;
   }
 
@@ -328,9 +328,12 @@ public final class Util {
    * @return first J2 prime found less than or equal to {@code n}
    */
   public static int findNextLowestJ2Prime(int n) {
-//    assert n > 1 : "n must be greater than 1.";
+    // special case: 1 is not a j2prime but this allows
+    // josehpus and shuffle interleavers to pass through
+    // to a one final swap condition when the size left
+    // less than 4 elements. When n is 1, 1 is returned.
     do {
-      if (isJ2Prime(n)) {
+      if((n % 4 == 1 || n % 4 == 2) && isJ2Prime(n)){
         return n;
       }
     } while (n-- > 2);

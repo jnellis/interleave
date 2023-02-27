@@ -105,6 +105,25 @@ class InterleaverUtilitiesTest extends Specification {
     J2P[0..<items] == results
   }
 
+  def "test findNextLowestJ2Prime"(){
+    given:
+    def max = J2P[J2P.length-1] + 1
+    int items = J2P.length
+    def results = []
+
+    when:
+    int last = Integer.MAX_VALUE
+    for(i in 2..<max) {
+      int next = Util.findNextLowestJ2Prime(i)
+      if(next != last){
+        results << next
+      }
+      last = next
+    }
+    then:
+    J2P[0..<items] == results
+  }
+
   def "test fastmod"(){
     expect:
     int x = 1234
