@@ -2,8 +2,6 @@ package net.jnellis.interleave;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Perform a {@link SequenceInterleaver} interleave up to the first half and
@@ -67,16 +65,16 @@ public class JosephusInterleaver extends AbstractInterleaver {
    * @see List#set(int, Object)
    */
   private static <T> void cycleTrailer(final int k, final int offset,
-                                       final Function<Integer, T> getter,
-                                       final BiFunction<Integer,T,T> setter){
+                                       final Getter<T>  getter,
+                                       final Setter<T>  setter){
     int trailerIdx = 0;
-    T initialVal = getter.apply(offset + trailerIdx);
+    T initialVal = getter.get(offset + trailerIdx);
     for (int i = 0; i < k - 1; i++) {
       int nextIdx = Util.a025480(k + trailerIdx);
-      setter.apply(offset + trailerIdx, getter.apply(offset + nextIdx));
+      setter.set(offset + trailerIdx, getter.get(offset + nextIdx));
       trailerIdx = nextIdx;
     }
-    setter.apply(offset + trailerIdx, initialVal);
+    setter.set(offset + trailerIdx, initialVal);
   }
 
   protected void interleave(final Object[] array, int from, final int to) {
@@ -115,7 +113,7 @@ public class JosephusInterleaver extends AbstractInterleaver {
 
     if(k != size){
       Util.rotate(a.subList(k, size), b.subList(0, k), k - size);
-      // NOTE: There will always exist a j2 big enough leave 'a' interleaved.
+      // NOTE: There will always exist a j2 big enough to leave 'a' interleaved.
       interleave(b.subList(2 * k - size, size)); // single list interleave
     }
   }
@@ -139,7 +137,7 @@ public class JosephusInterleaver extends AbstractInterleaver {
 
     if (k != size) {
       Util.rotate(a, fromA + k, toA, b, fromB, fromB + k, k - size);
-      // NOTE: There will always exist a j2 big enough leave 'a' interleaved.
+      // NOTE: There will always exist a j2 big enough to leave 'a' interleaved.
       interleave(b, fromB + 2 * k - size, toB); // single array interleave
     }
   }

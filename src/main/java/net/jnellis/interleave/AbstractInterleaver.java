@@ -135,5 +135,20 @@ public abstract class AbstractInterleaver implements Interleaver {
    */
   protected abstract <T> void interleave(T[] a, int fromA, int toA,
                                          T[] b, int fromB, int toB);
- 
+
+  /**
+   * Generic getter method
+   * @see List#get(int)
+   */
+  interface Getter<T>{
+    T get(int i);
+  }
+
+  /**
+   * Generic setter method
+   * @see List#set(int, Object)
+   */
+  interface Setter<T>{
+    T set(int i, T object);
+  }
 }
