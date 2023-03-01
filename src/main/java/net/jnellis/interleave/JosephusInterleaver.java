@@ -89,7 +89,7 @@ public class JosephusInterleaver extends AbstractInterleaver {
       final int _from = from; // for lambdas
       cycleTrailer(k, midpt,
                    (i) -> array[_from + i], // getter
-                   (i, obj) -> Util.set(array, _from + i, obj)); // setter
+                   (i, obj) -> array[_from + i] = obj); // setter
 
       if (k != midpt) {
         Util.rotate(array, from + k, from + k + midpt, k - midpt);
@@ -133,7 +133,7 @@ public class JosephusInterleaver extends AbstractInterleaver {
     final int _from = fromB;  // for lambdas
     cycleTrailer(k, COLLECTION_B_ONLY,
                  (i) -> b[_from + i],  // getter
-                 (i, obj) -> Util.set(b, _from + i, obj)); // setter
+                 (i, obj) -> b[_from + i] = obj); // setter
 
     if (k != size) {
       Util.rotate(a, fromA + k, toA, b, fromB, fromB + k, k - size);
