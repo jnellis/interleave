@@ -2,7 +2,6 @@ package net.jnellis.interleave;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiFunction;
 
 /**
  * An implementation of
@@ -55,15 +54,14 @@ public final class PermutationInterleaver extends AbstractInterleaver {
   @SuppressWarnings({"unchecked"})
   private static <T> void cycleLeader(final int k, final int mod,
                                       final Object initialValue,
-                                      final BiFunction<Integer,T,T> setter ){
+                                      final Setter<T> setter ){
     final long u64c = Long.divideUnsigned(-1L, mod) + 1L;
     final int startIdx = Util.POW3[k];
     int i = startIdx;
     T leader = (T)initialValue;
     do {
-      // i = ((i * 2) % c.mod) ; // slow mod for history sake
       i = Util.fastmod(i * 2, u64c, mod);
-      leader = setter.apply(i - 1, leader);
+      leader = setter.set(i - 1, leader);
     } while (i != startIdx);
   }
 
@@ -82,8 +80,7 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       }
 
       int _from = from;
-      BiFunction<Integer, Object, Object> setter =
-          (i, obj) -> Util.set(array, _from + i, obj);
+      Setter<?> setter =  (i, obj) -> Util.set(array, _from + i, obj);
 
       for (int k = 0; k < c.k; k++) {
         cycleLeader(k, c.mod, array[from + Util.POW3[k] - 1], setter);
@@ -92,6 +89,7 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       from += (2 * c.m);
     }
   }
+
 
   protected <T> void interleave(List<T> a, final List<T> b) {
     assert !a.isEmpty() : "Lists should not be empty.";
@@ -113,8 +111,7 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       }
 
       List<T> _a = a;
-      BiFunction<Integer,T,T> setter = (i,t)-> i < aSize ? _a.set(i,t)
-                                                         : b.set(i - aSize, t);
+      Setter<T> setter = (i,t)-> i < aSize ? _a.set(i,t): b.set(i - aSize, t);
 
       for (int k = 0; k < c.k; k++) {
         cycleLeader(k, c.mod, _a.get(Util.POW3[k] - 1), setter);
@@ -153,7 +150,7 @@ public final class PermutationInterleaver extends AbstractInterleaver {
       }
 
       int _fromA = fromA;
-      BiFunction<Integer,T,T> setter =
+      Setter<T> setter =
           (i, obj) -> i < aSize ? Util.set(a, _fromA + i, obj)
                                 : Util.set(b, fromB + i - aSize, obj);
 
