@@ -13,7 +13,7 @@ plugins {
 apply from: 'jmh.gradle'
 
 group 'net.jnellis'
-version '1.0.1'
+version '2.0.0'
 
 repositories {
   mavenCentral()
@@ -24,8 +24,6 @@ compileJava {
                           "-Xlint:preview",
                           "-Xdiags:verbose",
                           "-Xlint:deprecation"]
-
-//  options.release = 8
 }
 
 idea {
@@ -50,7 +48,7 @@ dependencies {
   testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.0'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 
-  testImplementation platform("org.spockframework:spock-bom:2.1-groovy-3.0")
+  testImplementation platform("org.spockframework:spock-bom:2.3-groovy-3.0")
   testImplementation "org.spockframework:spock-core"
 
 }
@@ -125,29 +123,33 @@ signing{
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["LogBench"]
+  include = ["OneArrayInShuffle"]
   iterations = 10
-  warmupIterations = 20
+  warmupIterations = 10
   jmhVersion = '1.36'
   benchmarkMode = ['avgt']
   resultFormat = 'JSON'
   resultsFile = reportFile
-//  profilers=['jfr']
+  profilers=['jfr']
   fork = 2
-  timeUnit = 'ns'
+  timeUnit = 'us'
   timeOnIteration = '1s'
   warmup = '1s'
   includeTests = false
   jvmArgs = ['-XX:MaxMetaspaceSize=512M -Xms8G -Xmx8G',
-             "-server",
-             "-XX:+UnlockDiagnosticVMOptions",
+             "-server", 
+//             "-XX:+UnlockDiagnosticVMOptions",
 //             "-XX:+PrintCompilation",
-             "-XX:PrintAssemblyOptions=intel",
-//             "-XX:CompileCommand=print,*Util.fastmod*"
+//             "-XX:PrintAssemblyOptions=intel",
+//             "-XX:CompileCommand=print,*ShufflePrimeInterleaver.cycleLeader*",
 //             "-XX:+UseLargePages",
              "-Xlog:gc+init"
   ]
-//  benchmarkParameters = ['max': [1_000]]
+  benchmarkParameters = [
+      'max': [10_000_000],
+      'colType': ["Unique"],
+//      'interleaverName':["shuffle"]
+  ]
 
 //  verbosity = 'EXTRA'
 //  help = true  // uncomment for jmh CLI help screen, then exit
