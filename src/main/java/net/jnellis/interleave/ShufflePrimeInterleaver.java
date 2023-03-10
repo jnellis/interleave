@@ -2,7 +2,6 @@ package net.jnellis.interleave;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiFunction;
 
 import static net.jnellis.interleave.Util.set;
 
@@ -55,14 +54,14 @@ public class ShufflePrimeInterleaver extends AbstractInterleaver {
   @SuppressWarnings({"unchecked"})
   private static <T> void cycleLeader(final int k,
                                       final Object initialValue,
-                                      final BiFunction<Integer, T, T> setter) {
+                                      final Setter<T> setter) {
     int idx = 0;
-    int mod = k + 1;
+    int mod = k + 1;  // fyi, mod is a prime number
     final long u64_c = Long.divideUnsigned(-1L, mod) + 1;
     T leader = (T) initialValue;
     for (int i = 0; i < k; i++) {
       idx = Util.fastmod(2 * idx + 1, u64_c, mod);
-      leader = setter.apply(idx, leader);
+      leader = setter.set(idx, leader);
     }
   }
 
@@ -101,8 +100,8 @@ public class ShufflePrimeInterleaver extends AbstractInterleaver {
     }
 
     cycleLeader(k, a.get(0),
-                (Integer i, T obj) -> i < size ? a.set(i, obj)
-                                               : b.set(i - size, obj));
+                (int i, T obj) -> i < size ? a.set(i, obj)
+                                           : b.set(i - size, obj));
   }
 
   protected <T> void interleave(final T[] a, final int fromA, final int toA,
@@ -122,7 +121,7 @@ public class ShufflePrimeInterleaver extends AbstractInterleaver {
     }
 
     cycleLeader(k, a[fromA],
-                (Integer i, T obj) -> i < size ? set(a, fromA + i, obj)
-                                               : set(b, fromB + i - size, obj));
+                (int i, T obj) -> i < size ? set(a, fromA + i, obj)
+                                           : set(b, fromB + i - size, obj));
   }
 }
