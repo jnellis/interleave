@@ -68,15 +68,11 @@ public class A025480Bench {
 //  @Param({"10", "1000", "100000", "10000000"})
   public static final int MAX = 10_000;
 
-//  @Param({"41","1048576"})    // odd number and a power of 2
-  public int k = 0;
-
   @Benchmark
   @Measurement
   @OperationsPerInvocation(MAX)
   public void trailingZerosMethod(Blackhole blackhole) {
-    int fz = k;
-    for (int i = 0; i < MAX; i++) {
+    for (int fz = 0; fz < MAX; fz++) {
       blackhole.consume(fz >> (Integer.numberOfTrailingZeros(~fz) + 1));
     }
   }
