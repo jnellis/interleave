@@ -62,5 +62,13 @@ public final class Interleavers {
    */
   public static final Interleaver SHUFFLE = new ShufflePrimeInterleaver();
 
+  /**
+   * This implementation allocates new space equal to the
+   * collection(s) size to perform interleaving. Single collections copy first,
+   * then interleave overwriting the original collection. Double collections
+   * interleave to an empty collection and then copy back.
+   */
+  public static final Interleaver SIMPLE = new SimpleInterleaver();
+
   private Interleavers() {}
 }
