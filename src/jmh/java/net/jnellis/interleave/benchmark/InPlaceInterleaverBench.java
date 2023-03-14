@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
 @State(Scope.Benchmark)
 public class InPlaceInterleaverBench {
 
-  @Param({"baseline","sequence","permutation","recursive","josephus","shuffle"})
+  @Param({"baseline","simple","sequence","permutation","recursive","josephus","shuffle"})
   public String interleaverName;
 
   @Param({"10", "100", "1000", "10000", "100000", "1000000", "10000000"})
