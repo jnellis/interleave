@@ -41,6 +41,7 @@ public class InPlaceInterleaverBench {
     recursive(Interleavers.RECURSIVE),
     josephus(Interleavers.JOSEPHUS),
     shuffle(Interleavers.SHUFFLE),
+    simple(Interleavers.SIMPLE),
     baseline(new Interleaver() {  // does absolutely nothing
       @Override
       public void interleave(List<?> list, Shuffle shuffle) {}

@@ -12,7 +12,8 @@ class OneArrayInterleaverTest extends InterleaversBase {
       "permutation": Interleavers.PERMUTATION::interleave,
       "recursive"  : Interleavers.RECURSIVE::interleave,
       "josephus"   : Interleavers.JOSEPHUS::interleave,
-      "shuffle"    : Interleavers.SHUFFLE::interleave
+      "shuffle"    : Interleavers.SHUFFLE::interleave,
+      "simple"   : Interleavers.SIMPLE::interleave
   ]
 
   def paramCombinations() {
