@@ -11,7 +11,7 @@ import spock.lang.Unroll
  * collections is only tested up to the size of the smaller sized collection.
  *
  */
-class TwoArrayInterleaversTest extends InterleaversBase {
+class TwoArrayInterleaverTest extends InterleaversBase {
 
   @Shared
   def interleavers = [
