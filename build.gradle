@@ -23,7 +23,10 @@ compileJava {
   options.compilerArgs = ["-Xlint:unchecked",
                           "-Xlint:preview",
                           "-Xdiags:verbose",
-                          "-Xlint:deprecation"]
+                          "-Xlint:deprecation",
+                          '--enable-preview'
+  ]
+//  options.release = 19
 }
 
 idea {
@@ -40,7 +43,7 @@ test {
   maxHeapSize = "8G"
 
   // set JVM arguments for the test JVM(s)
-  jvmArgs '-XX:MaxMetaspaceSize=512M'
+  jvmArgs '-XX:MaxMetaspaceSize=512M','--enable-preview'
 }
 
 dependencies {
@@ -53,8 +56,10 @@ dependencies {
 
 }
 
-javadoc {
-  options.addStringOption("Xwerror", "-Xdoclint:all")
+javadoc.options{
+  addStringOption("Xwerror", "-Xdoclint:all")
+  addBooleanOption('-enable-preview', true)
+  addStringOption('-release', '19')
 }
 check.dependsOn javadoc
 
@@ -123,7 +128,7 @@ signing{
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["OneArrayInShuffle"]
+  include = ["OnePrimitiveArrayInShuffle"]
   iterations = 10
   warmupIterations = 10
   jmhVersion = '1.36'
@@ -132,22 +137,24 @@ jmh {
   resultsFile = reportFile
   profilers=['jfr']
   fork = 2
-  timeUnit = 'us'
+  timeUnit = 'ns'
   timeOnIteration = '1s'
   warmup = '1s'
   includeTests = false
-  jvmArgs = ['-XX:MaxMetaspaceSize=512M -Xms8G -Xmx8G',
+  jvmArgs = ["--enable-preview",
+             '-XX:MaxMetaspaceSize=512M -Xms8G -Xmx8G',
              "-server", 
 //             "-XX:+UnlockDiagnosticVMOptions",
 //             "-XX:+PrintCompilation",
 //             "-XX:PrintAssemblyOptions=intel",
 //             "-XX:CompileCommand=print,*ShufflePrimeInterleaver.cycleLeader*",
 //             "-XX:+UseLargePages",
-             "-Xlog:gc+init"
+             "-Xlog:gc+init",
   ]
   benchmarkParameters = [
-      'max': [10_000_000],
-      'colType': ["Unique"],
+//      'max': [10, 1000, 10_000_000],
+      'arrayType': ["ints"],
+//      'colType': ["Unique"],
 //      'interleaverName':["shuffle"]
   ]
 
@@ -186,3 +193,4 @@ tasks.register('moveProfileResultsToJmhReportFolder', Copy) {
 tasks.jmh.dependsOn clearJmhTmpDir
 tasks.jmh.finalizedBy tasks.jmhReport
 tasks.jmhReport.finalizedBy moveProfileResultsToJmhReportFolder
+

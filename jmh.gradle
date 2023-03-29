@@ -35,7 +35,13 @@ afterEvaluate { // required to allow build.gradle to see jmh block first
       }
     }
   }
-
+  compileJmhJava {
+    options.compilerArgs = ["-Xlint:unchecked",
+                            "-Xlint:preview",
+                            "-Xdiags:verbose",
+                            "-Xlint:deprecation",
+                            '--enable-preview']
+  }
   dependencies {
     jmhImplementation "org.openjdk.jmh:jmh-core:$jmh.jmhVersion"
     jmhImplementation "org.openjdk.jmh:jmh-generator-bytecode:$jmh.jmhVersion"

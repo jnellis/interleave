@@ -63,7 +63,7 @@ public final class SequenceInterleaver extends AbstractInterleaver {
    * @param n number
    * @return  true if odd
    */
-  private static boolean isOdd(int n) {return (n & 1) == 1;}
+  static boolean isOdd(int n) {return (n & 1) == 1;}
 
   /**
    * The midpoint of a length, biased away from zero if the size is odd. ex.
@@ -72,7 +72,7 @@ public final class SequenceInterleaver extends AbstractInterleaver {
    * @param size a positive value
    * @return midpoint of a length.
    */
-  private static int biasedMidpoint(int size) {return size - (size >> 1);}
+  static int biasedMidpoint(int size) {return size - (size >> 1);}
 
   /**
    * When the first pass of interleaving is done up to the midpoint of the list,
@@ -88,7 +88,7 @@ public final class SequenceInterleaver extends AbstractInterleaver {
    * @return index of swap position.
    *
    */
-  private static int unshuffle(int j, int size) {
+  static int unshuffle(int j, int size) {
     int i = j;
     do {
       i = Util.a025480((size >> 1) + i);
@@ -183,4 +183,5 @@ public final class SequenceInterleaver extends AbstractInterleaver {
       midpt += swap_cnt;
     }
   }
+
 }
