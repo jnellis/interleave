@@ -1,11 +1,7 @@
 package net.jnellis.interleave.benchmark;
 
 import net.jnellis.interleave.Util;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.OperationsPerInvocation;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
 /**
@@ -43,13 +39,14 @@ import org.openjdk.jmh.infra.Blackhole;
  * {@code   @Benchmark
  *   @OperationsPerInvocation(MAX)
  *   public void compareAndShiftMethod(Blackhole blackhole) {
- *     int fz = k;
- *     for (int i = 0; i < MAX; i++){
- *       while ((fz & 1) != 0)
- *         fz >>= 1;
- *       fz = (fz >> 1) + k; // or change k to i
+ *     int i = k;
+ *     for (int fz = 0; fz < MAX; fz++) {
+ *       int i = k;
+ *       while ((i & 1) != 0)
+ *         i >>= 1;
+ *       i = (i >> 1);
+ *       blackhole.consume(i);
  *     }
- *     blackhole.consume(fz);
  *   }
  * }</pre>
  *
@@ -58,7 +55,18 @@ import org.openjdk.jmh.infra.Blackhole;
  * a call to {@link Integer#numberOfLeadingZeros(int)} which has similar
  * intrinsic implications. There is a branch for zero check, and a few more cycles
  * of instruction overhead than the {@link #trailingZerosMethod}.
- * </p>
+ * <p>
+ *
+ * 4. There are three versions of each bench. The first relies on nothing but the
+ * count of the forloop and thus it's possible that heavy loop unrolling can affect
+ * the benchmark despite how the A025480 method is used in other code.
+ * <p>
+ * The second method tries to prevent loop unrolling by making the input dependent
+ * on the last iteration. Again possibly different from real usage.
+ * <p>
+ * The third method forgoes looping for direct calling of the method but with a heavier
+ * dependence on the setup method which is called before every invocation; even though
+ * all that is happening is a simple increment.
  *
  * @see <a href="https://oeis.org/A025480">A025480 @OEIS.org</a>
  */
@@ -68,8 +76,14 @@ public class A025480Bench {
 //  @Param({"10", "1000", "100000", "10000000"})
   public static final int MAX = 10_000;
 
+  public static int k = 0x0000_5555; // lower alternating bits
+
+  @Setup(Level.Invocation)
+  public void setup(){
+    k++;
+  }
+
   @Benchmark
-  @Measurement
   @OperationsPerInvocation(MAX)
   public void trailingZerosMethod(Blackhole blackhole) {
     for (int fz = 0; fz < MAX; fz++) {
@@ -79,14 +93,50 @@ public class A025480Bench {
 
   @Benchmark
   @OperationsPerInvocation(MAX)
+  public void trailingZerosMethod2(Blackhole blackhole) {
+    int i = 0;
+    for (int fz = 0; fz < MAX; fz++) {
+      i += k;
+      i = i >> (Integer.numberOfTrailingZeros(~i) + 1);
+      blackhole.consume(i);
+    }
+  }
+
+  @Benchmark
+  public void trailingZerosMethod3(Blackhole blackhole) {
+    blackhole.consume(k >> (Integer.numberOfTrailingZeros(~k) + 1));
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(MAX)
   public void trailingZerosMethodOpt(Blackhole blackhole) {
     for (int fz = 0; fz < MAX; fz++) {
       blackhole.consume(
-          // "half of all numbers are even" optimization?
-          (fz & 1) == 0 ? fz >> 1
-                        : fz >> (Integer.numberOfTrailingZeros(~fz) + 1)
+              // "half of all numbers are even" optimization?
+              (fz & 1) == 0 ? fz >> 1
+                      : fz >> (Integer.numberOfTrailingZeros(~fz) + 1)
       );
     }
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(MAX)
+  public void trailingZerosMethodOpt2(Blackhole blackhole) {
+    int i = 0;
+    for (int fz = 0; fz < MAX; fz++) {
+      i += k;
+      // "half of all numbers are even" optimization?
+      i = (i & 1) == 0 ? i >> 1
+              : i >> (Integer.numberOfTrailingZeros(~i) + 1);
+      blackhole.consume(i);
+    }
+  }
+
+  @Benchmark
+  public void trailingZerosMethodOpt3(Blackhole blackhole) {
+      // "half of all numbers are even" optimization?
+      blackhole.consume((k & 1) == 0 ? k >> 1
+                                     : k >> (Integer.numberOfTrailingZeros(~k) + 1));
   }
 
   @Benchmark
@@ -99,6 +149,22 @@ public class A025480Bench {
 
   @Benchmark
   @OperationsPerInvocation(MAX)
+  public void logMethod2(Blackhole blackhole) {
+    int i = 0;
+    for (int fz = 0; fz < MAX; fz++) {
+      i += k;
+      i = i >> (Util.ilog2(~i & (i + 1)) + 1);
+      blackhole.consume(i);
+    }
+  }
+
+  @Benchmark
+  public void logMethod3(Blackhole blackhole) {
+    blackhole.consume(k >> (Util.ilog2(~k & (k + 1)) + 1));
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(MAX)
   public void compareAndShiftMethod(Blackhole blackhole) {
     for (int i = 0; i < MAX; i++){
       int fz = i;
@@ -106,5 +172,26 @@ public class A025480Bench {
         fz >>= 1;
       blackhole.consume(fz >> 1);
     }
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(MAX)
+  public void compareAndShiftMethod2(Blackhole blackhole) {
+    int i = k;
+    for (int fz = 0; fz < MAX; fz++) {
+      i += k;
+      while ((i & 1) != 0)
+        i >>= 1;
+      i = (i >> 1);
+      blackhole.consume(i);
+    }
+  }
+
+  @Benchmark
+  public void compareAndShiftMethod3(Blackhole blackhole) {
+    int fz = k;
+    while ((fz & 1) != 0)
+      fz >>= 1;
+    blackhole.consume(fz >> 1);
   }
 }
