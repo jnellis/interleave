@@ -64,9 +64,8 @@ import org.openjdk.jmh.infra.Blackhole;
  * The second method tries to prevent loop unrolling by making the input dependent
  * on the last iteration. Again possibly different from real usage.
  * <p>
- * The third method forgoes looping for direct calling of the method but with a heavier
- * dependence on the setup method which is called before every invocation; even though
- * all that is happening is a simple increment.
+ * The third method forgoes looping for direct calling of the method with a single
+ * value given as a param k.
  *
  * @see <a href="https://oeis.org/A025480">A025480 @OEIS.org</a>
  */
@@ -76,12 +75,8 @@ public class A025480Bench {
 //  @Param({"10", "1000", "100000", "10000000"})
   public static final int MAX = 10_000;
 
-  public static int k = 0x0000_5555; // lower alternating bits
-
-  @Setup(Level.Invocation)
-  public void setup(){
-    k++;
-  }
+  @Param({"1431655765"})
+  public int k;
 
   @Benchmark
   @OperationsPerInvocation(MAX)
@@ -103,8 +98,8 @@ public class A025480Bench {
   }
 
   @Benchmark
-  public void trailingZerosMethod3(Blackhole blackhole) {
-    blackhole.consume(k >> (Integer.numberOfTrailingZeros(~k) + 1));
+  public int trailingZerosMethod3() {
+    return(k >> (Integer.numberOfTrailingZeros(~k) + 1));
   }
 
   @Benchmark
@@ -133,10 +128,10 @@ public class A025480Bench {
   }
 
   @Benchmark
-  public void trailingZerosMethodOpt3(Blackhole blackhole) {
+  public int trailingZerosMethodOpt3() {
       // "half of all numbers are even" optimization?
-      blackhole.consume((k & 1) == 0 ? k >> 1
-                                     : k >> (Integer.numberOfTrailingZeros(~k) + 1));
+      return ((k & 1) == 0 ? k >> 1
+                           : k >> (Integer.numberOfTrailingZeros(~k) + 1));
   }
 
   @Benchmark
@@ -159,8 +154,8 @@ public class A025480Bench {
   }
 
   @Benchmark
-  public void logMethod3(Blackhole blackhole) {
-    blackhole.consume(k >> (Util.ilog2(~k & (k + 1)) + 1));
+  public int logMethod3() {
+    return k >> (Util.ilog2(~k & (k + 1)) + 1);
   }
 
   @Benchmark
@@ -188,10 +183,10 @@ public class A025480Bench {
   }
 
   @Benchmark
-  public void compareAndShiftMethod3(Blackhole blackhole) {
+  public int compareAndShiftMethod3(){
     int fz = k;
     while ((fz & 1) != 0)
       fz >>= 1;
-    blackhole.consume(fz >> 1);
+    return (fz >> 1);
   }
 }
