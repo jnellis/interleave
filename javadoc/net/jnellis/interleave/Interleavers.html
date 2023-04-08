@@ -163,6 +163,12 @@ loadScripts(document, 'script');</script>
  to the <a href="PermutationInterleaver.html" title="class in net.jnellis.interleave"><code>PermutationInterleaver</code></a> utilizing Shuffle Primes based on
  P.</div>
 </div>
+<div class="col-first odd-row-color"><code>static final <a href="Interleaver.html" title="interface in net.jnellis.interleave">Interleaver</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SIMPLE" class="member-name-link">SIMPLE</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">This implementation allocates new space equal to the
+ collection(s) size to perform interleaving.</div>
+</div>
 </div>
 </section>
 </li>
@@ -241,6 +247,16 @@ loadScripts(document, 'script');</script>
    Permuting Operations on Strings
  —
  Their Permutations and Their Primes</a>}</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SIMPLE">
+<h3>SIMPLE</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="Interleaver.html" title="interface in net.jnellis.interleave">Interleaver</a></span>&nbsp;<span class="element-name">SIMPLE</span></div>
+<div class="block">This implementation allocates new space equal to the
+ collection(s) size to perform interleaving. Single collections copy first,
+ then interleave overwriting the original collection. Double collections
+ interleave to an empty collection and then copy back.</div>
 </section>
 </li>
 </ul>
