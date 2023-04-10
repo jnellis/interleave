@@ -10,6 +10,7 @@ plugins {
 }
 
 
+apply from: 'benchcruncher.gradle'
 apply from: 'jmh.gradle'
 
 group 'net.jnellis'
@@ -26,7 +27,7 @@ compileJava {
                           "-Xlint:deprecation",
                           '--enable-preview'
   ]
-//  options.release = 19
+  options.release = 19
 }
 
 idea {
@@ -128,18 +129,18 @@ signing{
 def reportFile = file("$projectDir/docs/jmh/report.json")
 
 jmh {
-  include = ["OnePrimitiveArrayInShuffle"]
-  iterations = 10
-  warmupIterations = 10
+  include = ["OneArray"]
+  iterations = 5
+  warmupIterations = 5
   jmhVersion = '1.36'
-  benchmarkMode = ['avgt']
+  benchmarkMode = ['thrpt']
   resultFormat = 'JSON'
   resultsFile = reportFile
-  profilers=['jfr']
-  fork = 2
-  timeUnit = 'ns'
-  timeOnIteration = '1s'
-  warmup = '1s'
+//  profilers=['jfr']
+  fork = 10
+  timeUnit = 's'
+  timeOnIteration = '5s'
+  warmup = '5s'
   includeTests = false
   jvmArgs = ["--enable-preview",
              '-XX:MaxMetaspaceSize=512M -Xms8G -Xmx8G',
@@ -152,10 +153,10 @@ jmh {
              "-Xlog:gc+init",
   ]
   benchmarkParameters = [
-//      'max': [10, 1000, 10_000_000],
-      'arrayType': ["ints"],
-//      'colType': ["Unique"],
-//      'interleaverName':["shuffle"]
+      'max': [ 10_000_000 ],
+//      'arrayType': ["ints"],
+      'colType': ["Unique"],
+      'interleaverName':["josephus"]
   ]
 
 //  verbosity = 'EXTRA'

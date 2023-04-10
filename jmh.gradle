@@ -40,8 +40,13 @@ afterEvaluate { // required to allow build.gradle to see jmh block first
                             "-Xlint:preview",
                             "-Xdiags:verbose",
                             "-Xlint:deprecation",
-                            '--enable-preview']
+                            '--enable-preview'] 
+    javaCompiler = javaToolchains.compilerFor{
+      languageVersion = JavaLanguageVersion.of(19)
+    }
   }
+
+
   dependencies {
     jmhImplementation "org.openjdk.jmh:jmh-core:$jmh.jmhVersion"
     jmhImplementation "org.openjdk.jmh:jmh-generator-bytecode:$jmh.jmhVersion"
@@ -85,6 +90,9 @@ afterEvaluate { // required to allow build.gradle to see jmh block first
     mainClass = 'org.openjdk.jmh.Main'
     doFirst {
       args = jmh.include + jmh.castleAaaaaaaarrgh()
+    }
+    javaLauncher = javaToolchains.launcherFor {
+      languageVersion = JavaLanguageVersion.of(19)
     }
   }
 

@@ -1,0 +1,34 @@
+import groovy.json.JsonSlurper
+
+tasks.register("crunchBenchmarkResults") {
+
+    if (project.hasProperty("benchDir")) {
+        def benchDir = project.property("benchDir")
+        def benchFile = file("$benchDir/provided.js").getText()
+        benchFile = benchFile.substring(benchFile.indexOf('{')).replace('\'', '"')
+        def json = new JsonSlurper().parseText(benchFile)
+
+        def results = ""
+        json.report.each { item ->
+            def result = []
+            String benchname = item.benchmark.toString()
+            result <<  benchname.substring(benchname.lastIndexOf('.')+1) - "InShuffle"
+                    << item.params.values()*.toString()
+                    << item.primaryMetric.score.toString()
+                    << item.primaryMetric.scoreError.toString()
+                    << item.primaryMetric.scoreUnit.toString()
+            result = result.flatten()
+
+            results += result.join(",") << System.lineSeparator()
+
+        }
+        println results
+        FileWriter writer = new FileWriter(benchDir+".csv")
+        writer.write(results)
+        writer.close()
+    } else {
+        throw new RuntimeException("can't find benchDir")
+    }
+
+
+}
