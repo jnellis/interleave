@@ -9,9 +9,8 @@ import static net.jnellis.interleave.PermutationInterleaver.Constants;
 import static net.jnellis.interleave.SequenceInterleaver.*;
 
 /**
- * User: Joe Nellis
- * Date: 3/17/2023
- * Time: 3:21 PM
+ * Utility class to in-place in-shuffle interleave primitive arrays at their midpoint similar to the behavior
+ * {@link Interleaver}.
  */
 public class PrimitiveArrayInShuffleInterleavers {
 
@@ -25,20 +24,21 @@ public class PrimitiveArrayInShuffleInterleavers {
 
   /**
    * Takes element from temp[b] and puts it in array[a]
-   * @param array  destination array
-   * @param temp   source array
+   * @param dest  destination array
+   * @param src   source array
    * @return an BiConsumer that takes index positions a & b
    */
-   static IntBiConsumer arrayArraySetFunc(Object array, Object temp){
-     assert array.getClass().isArray() : "array must be and Array type.";
-     assert temp.getClass().isArray() : "temp must be an Array type.";
-     return switch (array) {
-       case int[]    i -> (a, b) ->  i[a] = ((int[]) (temp))[b];
-       case long[]   l -> (a, b) ->  l[a] = ((long[]) (temp))[b];
-       case double[] d -> (a, b) ->  d[a] = ((double[]) (temp))[b];
-       case float[]  f -> (a, b) ->  f[a] = ((float[]) (temp))[b];
-       case char[]   c -> (a, b) ->  c[a] = ((char[]) (temp))[b];
-       case byte[]  bt -> (a, b) -> bt[a] = ((byte[]) (temp))[b];
+   static IntBiConsumer arrayArraySetFunc(Object src, Object dest){
+     assert dest.getClass().isArray() : "dest must be and Array type.";
+     assert src.getClass().isArray() : "src must be an Array type.";
+     assert dest.getClass() == src.getClass(): "src and dest must be arrays of same type.";
+     return switch (dest) {
+       case int[]    i -> (a, b) ->  i[a] = ((int[]) (src))[b];
+       case long[]   l -> (a, b) ->  l[a] = ((long[]) (src))[b];
+       case double[] d -> (a, b) ->  d[a] = ((double[]) (src))[b];
+       case float[]  f -> (a, b) ->  f[a] = ((float[]) (src))[b];
+       case char[]   c -> (a, b) ->  c[a] = ((char[]) (src))[b];
+       case byte[]  bt -> (a, b) -> bt[a] = ((byte[]) (src))[b];
        default -> throw new IllegalStateException("""
          Only primitive arrays allowed (int, long, double, float, char, byte)""");
      };
@@ -137,10 +137,10 @@ public class PrimitiveArrayInShuffleInterleavers {
     assert type != null : "Parameter array must be an array object.";
     int halfSize = (to - from) / 2;
     var temp = Array.newInstance(type, halfSize << 1);
-    IntBiConsumer arraySet = arrayArraySetFunc(array, temp);
     // copy first to prime caches
     System.arraycopy(array, from, temp, 0, halfSize << 1);
     // write back interleaving
+    IntBiConsumer arraySet = arrayArraySetFunc(temp, array);
     for (int i = 0, k = 0; k < halfSize; i += 2, k++) {
       arraySet.accept(from + i, halfSize + k);
       arraySet.accept(from + i + 1, k);
