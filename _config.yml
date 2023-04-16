@@ -23,7 +23,7 @@ email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
   Interleaving one collection with itself or two collections with each other,
   in-place without using extra memory in O(n) time.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/interleave" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 #twitter_username: jekyllrb
 github_username:  jnellis
